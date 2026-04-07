@@ -1,2 +1,14 @@
-#Ignore environment variables
-.env
+# ignore all node_modules
+node_modules/*
+
+# ignore config file
+config/config.env
+
+# ignore test case file
+test_case*.json
+
+# ignore UML folder
+UML/
+
+# macOS
+.DS_Store
