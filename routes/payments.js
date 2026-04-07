@@ -35,7 +35,7 @@ module.exports = router;
  *       properties:
  *         company:
  *           type: string
- *           description: The ObjectId of the company
+ *           description: The Object id of the company
  *         totalPrice:
  *           type: number
  *           description: Total payment amount
@@ -60,11 +60,19 @@ module.exports = router;
  *               createdAt:
  *                 type: string
  *                 format: date-time
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
  *       example:
  *         company: "60d0fe4f5311236168a109ca"
  *         totalPrice: 1500
  *         status: "initiated"
  *         dateList: ["2026-05-10T00:00:00.000Z", "2026-05-11T00:00:00.000Z"]
+ *         createdAt: "2026-04-08T03:24:21.000Z"
+ *         updatedAt: "2026-04-08T03:24:21.000Z"
  */
 
 /**
@@ -79,6 +87,7 @@ module.exports = router;
  * /payments:
  *   get:
  *     summary: Returns the list of all payments
+ *     description: Access - Private (Admin, Company)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -102,6 +111,7 @@ module.exports = router;
  *                     $ref: '#/components/schemas/Payment'
  *   post:
  *     summary: Create a new payment
+ *     description: Access - Private (Admin, Company)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -129,7 +139,8 @@ module.exports = router;
  * @swagger
  * /payments/{id}:
  *   get:
- *     summary: Get a payment by ID
+ *     summary: Get a payment by id
+ *     description: Access - Private (Admin, Company)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -139,7 +150,7 @@ module.exports = router;
  *         schema:
  *           type: string
  *         required: true
- *         description: The payment ID
+ *         description: The payment id
  *     responses:
  *       200:
  *         description: The payment description by id
@@ -155,7 +166,8 @@ module.exports = router;
  *       404:
  *         description: The payment was not found
  *   put:
- *     summary: Update a payment
+ *     summary: Update a payment by id
+ *     description: Access - Private (Admin, Company)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -165,7 +177,7 @@ module.exports = router;
  *         schema:
  *           type: string
  *         required: true
- *         description: The payment ID
+ *         description: The payment id
  *     requestBody:
  *       required: true
  *       content:
@@ -185,7 +197,8 @@ module.exports = router;
  *                 data:
  *                   $ref: '#/components/schemas/Payment'
  *   delete:
- *     summary: Remove the payment
+ *     summary: Remove the payment by id
+ *     description: Access - Private (Admin, Company)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -195,7 +208,7 @@ module.exports = router;
  *         schema:
  *           type: string
  *         required: true
- *         description: The payment ID
+ *         description: The payment id
  *     responses:
  *       200:
  *         description: The payment was deleted

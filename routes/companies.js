@@ -183,7 +183,7 @@ module.exports = router;
  *   put:
  *     security:
  *       - bearerAuth: []
- *     summary: Update the company by the id
+ *     summary: Update the company by id
  *     tags: [Companies]
  *     parameters:
  *       - in: path

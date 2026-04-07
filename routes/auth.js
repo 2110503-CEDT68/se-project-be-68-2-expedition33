@@ -19,6 +19,32 @@ module.exports = router;
  *       type: http
  *       scheme: bearer
  *       bearerFormat: JWT
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *         tel:
+ *           type: string
+ *         role:
+ *           type: string
+ *           enum: [user, admin]
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *       example:
+ *         id: "60d0fe4f5311236168a109ca"
+ *         name: "John Doe"
+ *         email: "johndoe@example.com"
+ *         tel: "0999999999"
+ *         role: "user"
+ *         createdAt: "2026-04-08T03:24:21.000Z"
  */
 
 /**
@@ -122,18 +148,7 @@ module.exports = router;
  *                   type: boolean
  *                   example: true
  *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                     name:
- *                       type: string
- *                     email:
- *                       type: string
- *                     tel:
- *                       type: string
- *                     role:
- *                       type: string
+ *                   $ref: '#/components/schemas/User'
  *       401:
  *         description: Not authorized to access this route
  */
