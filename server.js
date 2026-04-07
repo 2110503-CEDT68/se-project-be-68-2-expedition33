@@ -20,6 +20,7 @@ connectDB();
 const companies = require("./routes/companies");
 const auth = require("./routes/auth");
 const bookings = require("./routes/bookings");
+const payments = require("./routes/payments");
 
 const app = express();
 const cors = require("cors");
@@ -121,6 +122,7 @@ app.use(
 app.use("/api/v1/companies", companies);
 app.use("/api/v1/auth", auth);
 app.use("/api/v1/bookings", bookings);
+app.use("/api/v1/payments", payments);
 
 const server = app.listen(
 	PORT,
