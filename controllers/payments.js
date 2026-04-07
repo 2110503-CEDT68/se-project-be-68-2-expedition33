@@ -1,85 +1,85 @@
-const Company = require('../models/Company');
-const Payment = require('../models/Payment');
+const Company = require("../models/Company");
+const Payment = require("../models/Payment");
 
 //@desc		Get all payments
 //@route	GET /api/v1/payments
-//@access	Public
+//@access	Private
 exports.getPayments = async (req, res) => {
-    let query;
+	let query;
 
-    // Copy req.query
-    const reqQuery = { ...req.query };
+	// Copy req.query
+	const reqQuery = { ...req.query };
 
-    // Fields to exclude
-    const removeFields = ["select", "sort", "page", "limit"];
+	// Fields to exclude
+	const removeFields = ["select", "sort", "page", "limit"];
 
-    // Loop over remove fields and delete them from reqQuery
-    removeFields.forEach((param) => delete reqQuery[param]);
+	// Loop over remove fields and delete them from reqQuery
+	removeFields.forEach((param) => delete reqQuery[param]);
 
-    // Create query string
-    let queryStr = JSON.stringify(reqQuery);
+	// Create query string
+	let queryStr = JSON.stringify(reqQuery);
 
-    // Create operators ($gt, $gte, $lt, $lte, $in)
-    queryStr = queryStr.replace(
-        /\b(gt|gte|lt|lte|in)\b/g,
-        (match) => `$${match}`,
-    );
+	// Create operators ($gt, $gte, $lt, $lte, $in)
+	queryStr = queryStr.replace(
+		/\b(gt|gte|lt|lte|in)\b/g,
+		(match) => `$${match}`,
+	);
 
-    // Finding resource
-    query = Company.find(JSON.parse(queryStr)).populate("bookings");
+	// Finding resource
+	query = Payment.find(JSON.parse(queryStr)).populate("companies");
 
-    // Select fields
-    if (req.query.select) {
-        const fields = req.query.select.split(",").join(" ");
-        query = query.select(fields);
-    }
+	// Select fields
+	if (req.query.select) {
+		const fields = req.query.select.split(",").join(" ");
+		query = query.select(fields);
+	}
 
-    // Sort
-    if (req.query.sort) {
-        const sortBy = req.query.sort.split(",").join(" ");
-        query = query.sort(sortBy);
-    } else {
-        query = query.sort("-createdAt");
-    }
+	// Sort
+	if (req.query.sort) {
+		const sortBy = req.query.sort.split(",").join(" ");
+		query = query.sort(sortBy);
+	} else {
+		query = query.sort("-createdAt");
+	}
 
-    // Pagination
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 25;
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
+	// Pagination
+	const page = parseInt(req.query.page, 10) || 1;
+	const limit = parseInt(req.query.limit, 10) || 25;
+	const startIndex = (page - 1) * limit;
+	const endIndex = page * limit;
 
-    try {
-        const total = await Company.countDocuments();
+	try {
+		const total = await Payment.countDocuments();
 
-        query = query.skip(startIndex).limit(limit);
+		query = query.skip(startIndex).limit(limit);
 
-        // Executing query
-        const companies = await query;
+		// Executing query
+		const payments = await query;
 
-        // Pagination result
-        const pagination = {};
+		// Pagination result
+		const pagination = {};
 
-        if (endIndex < total) {
-            pagination.next = {
-                page: page + 1,
-                limit,
-            };
-        }
+		if (endIndex < total) {
+			pagination.next = {
+				page: page + 1,
+				limit,
+			};
+		}
 
-        if (startIndex > 0) {
-            pagination.prev = {
-                page: page - 1,
-                limit,
-            };
-        }
+		if (startIndex > 0) {
+			pagination.prev = {
+				page: page - 1,
+				limit,
+			};
+		}
 
-        res.status(200).json({
-            success: true,
-            count: companies.length,
-            pagination,
-            data: companies,
-        });
-    } catch (err) {
-        res.status(500).json({ success: false, msg: "Cannot fetch Companies" });
-    }
+		res.status(200).json({
+			success: true,
+			count: payments.length,
+			pagination,
+			data: payments,
+		});
+	} catch (err) {
+		res.status(500).json({ success: false, msg: "Cannot fetch Payments" });
+	}
 };
