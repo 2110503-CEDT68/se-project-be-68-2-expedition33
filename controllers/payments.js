@@ -7,23 +7,31 @@ const Payment = require('../models/Payment');
 exports.getPayments = async (req, res) => {
     let query;
 
+
+    // Copy req.query to avoid mutating the original
     const reqQuery = { ...req.query };
+
+    // Exclude non-filter fields before building the query
     const removeFields = ["select", "sort", "page", "limit"];
     removeFields.forEach((param) => delete reqQuery[param]);
 
+    // Stringify and inject MongoDB operators (e.g. gt -> $gt)
     let queryStr = JSON.stringify(reqQuery);
     queryStr = queryStr.replace(
         /\b(gt|gte|lt|lte|in)\b/g,
         (match) => `$${match}`,
     );
 
+    // Base query with company details populated
     query = Payment.find(JSON.parse(queryStr)).populate("company");
 
+    // Apply field selection if specified
     if (req.query.select) {
         const fields = req.query.select.split(",").join(" ");
         query = query.select(fields);
     }
 
+    // Apply sorting or default to newest first
     if (req.query.sort) {
         const sortBy = req.query.sort.split(",").join(" ");
         query = query.sort(sortBy);
@@ -31,6 +39,7 @@ exports.getPayments = async (req, res) => {
         query = query.sort("-createdAt");
     }
 
+    // Pagination setup
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 25;
     const startIndex = (page - 1) * limit;
@@ -41,6 +50,8 @@ exports.getPayments = async (req, res) => {
         query = query.skip(startIndex).limit(limit);
 
         const payments = await query;
+
+        // Build pagination pointers if applicable
         const pagination = {};
 
         if (endIndex < total) {
@@ -111,8 +122,8 @@ exports.updatePayment = async (req, res) => {
             req.params.id,
             req.body,
             {
-                new: true,           // Return the updated document
-                runValidators: true, // Run schema validators on update
+                new: true,           
+                runValidators: true, 
             }
         );
 
@@ -124,13 +135,14 @@ exports.updatePayment = async (req, res) => {
         }
 
         res.status(200).json({ success: true, data: payment });
+        
     } catch (err) {
-        if (err.name === 'ValidationError') {
-            const messages = Object.values(err.errors).map((e) => e.message);
-            return res.status(400).json({ success: false, msg: messages });
+            if (err.name === 'ValidationError') {
+                const messages = Object.values(err.errors).map((e) => e.message);
+                return res.status(400).json({ success: false, msg: messages });
+            }
+            res.status(500).json({ success: false, msg: "Cannot update payment" });
         }
-        res.status(500).json({ success: false, msg: "Cannot update payment" });
-    }
 };
 
 //@desc     Delete payment
