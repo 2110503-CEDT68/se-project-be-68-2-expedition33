@@ -1,0 +1,16 @@
+{
+    "version": 2,
+    "name": "be-project-68-nocortisol",
+    "builds": [
+        {
+            "src": "server.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/server.js"
+        }
+    ]
+}
