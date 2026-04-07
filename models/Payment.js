@@ -27,11 +27,11 @@ const PaymentSchema = new mongoose.Schema(
                 createdAt: { type: Date, default: Date.now }
             }
         ],
-        timestamp: true,
     },
     {
 		toJSON: { virtuals: true },
 		toObject: { virtuals: true },
+        timestamp: true,
 	},
 );
 
