@@ -1,40 +1,29 @@
 const Company = require('../models/Company');
 const Payment = require('../models/Payment');
 
-//@desc		Get all payments
-//@route	GET /api/v1/payments
-//@access	Public
+//@desc     Get all payments
+//@route    GET /api/v1/payments
+//@access   Public
 exports.getPayments = async (req, res) => {
     let query;
 
-    // Copy req.query
     const reqQuery = { ...req.query };
-
-    // Fields to exclude
     const removeFields = ["select", "sort", "page", "limit"];
-
-    // Loop over remove fields and delete them from reqQuery
     removeFields.forEach((param) => delete reqQuery[param]);
 
-    // Create query string
     let queryStr = JSON.stringify(reqQuery);
-
-    // Create operators ($gt, $gte, $lt, $lte, $in)
     queryStr = queryStr.replace(
         /\b(gt|gte|lt|lte|in)\b/g,
         (match) => `$${match}`,
     );
 
-    // Finding resource
-    query = Company.find(JSON.parse(queryStr)).populate("bookings");
+    query = Payment.find(JSON.parse(queryStr)).populate("company");
 
-    // Select fields
     if (req.query.select) {
         const fields = req.query.select.split(",").join(" ");
         query = query.select(fields);
     }
 
-    // Sort
     if (req.query.sort) {
         const sortBy = req.query.sort.split(",").join(" ");
         query = query.sort(sortBy);
@@ -42,44 +31,124 @@ exports.getPayments = async (req, res) => {
         query = query.sort("-createdAt");
     }
 
-    // Pagination
     const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 25;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
     try {
-        const total = await Company.countDocuments();
-
+        const total = await Payment.countDocuments();
         query = query.skip(startIndex).limit(limit);
 
-        // Executing query
-        const companies = await query;
-
-        // Pagination result
+        const payments = await query;
         const pagination = {};
 
         if (endIndex < total) {
-            pagination.next = {
-                page: page + 1,
-                limit,
-            };
+            pagination.next = { page: page + 1, limit };
         }
-
         if (startIndex > 0) {
-            pagination.prev = {
-                page: page - 1,
-                limit,
-            };
+            pagination.prev = { page: page - 1, limit };
         }
 
         res.status(200).json({
             success: true,
-            count: companies.length,
+            count: payments.length,
             pagination,
-            data: companies,
+            data: payments,
         });
     } catch (err) {
-        res.status(500).json({ success: false, msg: "Cannot fetch Companies" });
+        res.status(500).json({ success: false, msg: "Cannot fetch payments" });
+    }
+};
+
+
+//@desc		Get single payment
+//@route	GET /api/v1/payments/:id
+//@access	Public
+exports.getPayment = async (req, res) => {
+    try {
+        const payment = await Payment.findById(req.params.id);
+        
+        if (!payment) {
+            return res.status(404).json({ 
+                success: false,
+                msg: `Payment not found with id of ${req.params.id}`
+            });
+        }
+
+        res.status(200).json({ success: true, data: payment });
+    }
+
+    catch (err) {
+        res.status(500).json({ success: false, msg: "Cannot fetch Payment" });
+    }
+};
+
+//@desc     Create payment
+//@route    POST /api/v1/payments
+//@access   Private
+exports.createPayment = async (req, res) => {
+    try {
+        const payment = await Payment.create(req.body);
+
+        res.status(201).json({ success: true, data: payment });
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            const messages = Object.values(err.errors).map((e) => e.message);
+            return res.status(400).json({ success: false, msg: messages });
+        }
+        res.status(500).json({ success: false, msg: "Cannot create payment" });
+    }
+};
+
+
+//@desc     Update payment
+//@route    PUT /api/v1/payments/:id
+//@access   Private
+exports.updatePayment = async (req, res) => {
+    try {
+        const payment = await Payment.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,           // Return the updated document
+                runValidators: true, // Run schema validators on update
+            }
+        );
+
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                msg: `Payment not found with id of ${req.params.id}`,
+            });
+        }
+
+        res.status(200).json({ success: true, data: payment });
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            const messages = Object.values(err.errors).map((e) => e.message);
+            return res.status(400).json({ success: false, msg: messages });
+        }
+        res.status(500).json({ success: false, msg: "Cannot update payment" });
+    }
+};
+
+//@desc     Delete payment
+//@route    DELETE /api/v1/payments/:id
+//@access   Private
+exports.deletePayment = async (req, res) => {
+    try {
+        const payment = await Payment.findByIdAndDelete(req.params.id);
+
+        if (!payment) {
+            return res.status(404).json({
+                success: false,
+                msg: `Payment not found with id of ${req.params.id}`,
+            });
+        }
+
+        res.status(200).json({ success: true, data: {} });
+    } catch (err) {
+        res.status(500).json({ success: false, msg: "Cannot delete payment" });
     }
 };
