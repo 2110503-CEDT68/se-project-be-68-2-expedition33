@@ -3,8 +3,9 @@ const mongoose = require("mongoose");
 const PaymentSchema = new mongoose.Schema(
     {
         company: {
-            type: String,
-            required: [true, "Please add a company name"],
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Company",
+            required: [true , "Please add a company"]
         },
         totalPrice: {
             type: Number,
@@ -12,20 +13,21 @@ const PaymentSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["pending", "paid", "cancelled"],
-            default: "pending",
+            enum: ["initiated","authorized" ,"captured", "cancelled","failed"],
+            default: "initiated",
         },
         dateList: {
             type: [Date],
             required: [true, "Please add a list of dates"],
         },
-        updateAt: {
-            type: Date,
-        },
-        createdAt: {
-            type: Date,
-            default: Date.now,
-        },
+        events: [
+            {
+                type: { type: String },
+                payload: { type: Object },
+                createdAt: { type: Date, default: Date.now }
+            }
+        ],
+        timestamp: true,
     },
     {
 		toJSON: { virtuals: true },
@@ -33,4 +35,4 @@ const PaymentSchema = new mongoose.Schema(
 	},
 );
 
-module.exports = mongoose.model("Payment", PaymentSchema);const mongoose = require("mongoose");
+module.exports = mongoose.model("Payment", PaymentSchema);
