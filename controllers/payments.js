@@ -22,7 +22,7 @@ exports.getPayments = async (req, res) => {
 	);
 
 	// Base query with company details populated
-	query = Payment.find(JSON.parse(queryStr)).populate("companies");
+	query = Payment.find(JSON.parse(queryStr)).populate("company");
 
 	// Apply field selection if specified
 	if (req.query.select) {
@@ -45,7 +45,7 @@ exports.getPayments = async (req, res) => {
 	const endIndex = page * limit;
 
 	try {
-		const total = await Payment.countDocuments();
+		const total = await Payment.countDocuments(JSON.parse(queryStr));
 		query = query.skip(startIndex).limit(limit);
 
 		const payments = await query;
