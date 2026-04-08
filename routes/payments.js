@@ -33,6 +33,9 @@ module.exports = router;
  *         - totalPrice
  *         - dateList
  *       properties:
+ *         id:
+ *           type: string
+ *           description: The auto-generated id of the payment
  *         company:
  *           type: string
  *           description: The Object id of the company
@@ -67,6 +70,7 @@ module.exports = router;
  *           type: string
  *           format: date-time
  *       example:
+ *         id: "64c8d1f2e4b0c2a1d8f9e0a1"
  *         company: "60d0fe4f5311236168a109ca"
  *         totalPrice: 1500
  *         status: "initiated"
