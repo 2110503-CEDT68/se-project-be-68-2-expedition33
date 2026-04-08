@@ -17,7 +17,7 @@ router
 router
 	.route("/:id")
 	.get(protect, authorize("admin", "company"), getPayment)
-	.put(protect, authorize("admin", "company"), updatePayment)
+	.put(protect, authorize("admin"), updatePayment)
 	.delete(protect, authorize("admin", "company"), deletePayment);
 
 module.exports = router;
@@ -56,7 +56,7 @@ module.exports = router;
  *           items:
  *             type: object
  *             properties:
- *               type:
+ *               eventType:
  *                 type: string
  *               payload:
  *                 type: object
@@ -114,8 +114,8 @@ module.exports = router;
  *                   items:
  *                     $ref: '#/components/schemas/Payment'
  *   post:
- *     summary: Create a new payment
- *     description: Access - Private (Admin, Company)
+ *     summary: Create a new payment (Invoice)
+ *     description: Access - Private (Admin, Company). Automatically calculates total price based on dates.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -124,7 +124,20 @@ module.exports = router;
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Payment'
+ *             type: object
+ *             required:
+ *               - company
+ *               - dateList
+ *             properties:
+ *               company:
+ *                 type: string
+ *                 example: "60d0fe4f5311236168a109ca"
+ *               dateList:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: date-time
+ *                 example: ["2026-05-10T00:00:00.000Z", "2026-05-11T00:00:00.000Z"]
  *     responses:
  *       201:
  *         description: The payment was successfully created
@@ -170,8 +183,8 @@ module.exports = router;
  *       404:
  *         description: The payment was not found
  *   put:
- *     summary: Update a payment by id
- *     description: Access - Private (Admin, Company)
+ *     summary: Update a payment status (Webhook / Internal)
+ *     description: Access - Private (Admin). Used to update payment status and log events.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -187,7 +200,16 @@ module.exports = router;
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Payment'
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [initiated, authorized, captured, cancelled, failed]
+ *                 example: "failed"
+ *               errorMessage:
+ *                 type: string
+ *                 description: Optional error message if payment failed
+ *                 example: "Insufficient funds"
  *     responses:
  *       200:
  *         description: The payment was updated

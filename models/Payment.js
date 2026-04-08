@@ -22,8 +22,50 @@ const PaymentSchema = new mongoose.Schema(
 		},
 		events: [
 			{
-				type: { type: String },
-				payload: { type: Object },
+				eventType: {
+					type: String,
+					required: [true, "Please add an event type"],
+					enum: [
+						"PAYMENT_INITIATED",
+						"PAYMENT_AUTHORIZED",
+						"PAYMENT_FAILED",
+						"PAYMENT_SUCCESS",
+						"PAYMENT_CANCELLED",
+					],
+					default: "PAYMENT_INITIATED",
+				},
+				payload: {
+					oldStatus: {
+						type: String,
+						enum: [
+							"initiated",
+							"authorized",
+							"captured",
+							"cancelled",
+							"failed",
+						],
+						default: null,
+					},
+					newStatus: {
+						type: String,
+						enum: [
+							"initiated",
+							"authorized",
+							"captured",
+							"cancelled",
+							"failed",
+						],
+						default: "initiated",
+					},
+					transactionId: {
+						type: String,
+						default: null,
+					},
+					errorMessage: {
+						type: String,
+						description: "Logs the reason if the payment failed",
+					},
+				},
 				createdAt: { type: Date, default: Date.now },
 			},
 		],
@@ -31,7 +73,7 @@ const PaymentSchema = new mongoose.Schema(
 	{
 		toJSON: { virtuals: true },
 		toObject: { virtuals: true },
-		timestamp: true,
+		timestamps: true,
 	},
 );
 
