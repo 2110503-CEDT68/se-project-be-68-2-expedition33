@@ -20,7 +20,7 @@ exports.getCompanies = async (req, res, next) => {
 	let queryStr = JSON.stringify(reqQuery);
 
 	// Create operators ($gt, $gte, $lt, $lte, $in)
-	queryStr = queryStr.replace(
+	queryStr = queryStr.replaceAll(
 		/\b(gt|gte|lt|lte|in)\b/g,
 		(match) => `$${match}`,
 	);
@@ -43,8 +43,8 @@ exports.getCompanies = async (req, res, next) => {
 	}
 
 	// Pagination
-	const page = parseInt(req.query.page, 10) || 1;
-	const limit = parseInt(req.query.limit, 10) || 25;
+	const page = Number.parseInt(req.query.page, 10) || 1;
+	const limit = Number.parseInt(req.query.limit, 10) || 25;
 	const startIndex = (page - 1) * limit;
 	const endIndex = page * limit;
 
@@ -81,6 +81,7 @@ exports.getCompanies = async (req, res, next) => {
 		});
 	} catch (err) {
 		res.status(500).json({ success: false, msg: "Cannot fetch Companies" });
+		console.log(err);
 	}
 };
 
@@ -103,6 +104,7 @@ exports.getCompany = async (req, res) => {
 		if (err.name === "CastError")
 			return res.status(400).json({ success: false, msg: "Invalid ID" });
 		res.status(500).json({ success: false, msg: "Cannot fetch Company" });
+		console.log(err);
 	}
 };
 
@@ -117,6 +119,7 @@ exports.createCompany = async (req, res) => {
 		if (err.name === "ValidationError")
 			return res.status(400).json({ success: false, msg: err.message });
 		res.status(500).json({ success: false, msg: "Cannot create Company" });
+		console.log(err);
 	}
 };
 
@@ -144,6 +147,7 @@ exports.updateCompany = async (req, res) => {
 		if (err.name === "CastError")
 			return res.status(400).json({ success: false, msg: "Invalid ID" });
 		res.status(500).json({ success: false, msg: "Cannot update Company" });
+		console.log(err);
 	}
 };
 
@@ -171,5 +175,6 @@ exports.deleteCompany = async (req, res) => {
 		if (err.name === "CastError")
 			return res.status(400).json({ success: false, msg: "Invalid ID" });
 		res.status(500).json({ success: false, msg: "Cannot delete Company" });
+		console.log(err);
 	}
 };

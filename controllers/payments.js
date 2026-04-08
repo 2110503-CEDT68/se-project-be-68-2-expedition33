@@ -107,6 +107,7 @@ exports.createPayment = async (req, res) => {
 			return res.status(400).json({ success: false, msg: messages });
 		}
 		res.status(500).json({ success: false, msg: "Cannot create Payment" });
+		console.log(err);
 	}
 };
 
@@ -134,6 +135,7 @@ exports.updatePayment = async (req, res) => {
 			return res.status(400).json({ success: false, msg: messages });
 		}
 		res.status(500).json({ success: false, msg: "Cannot update Payment" });
+		console.log(err);
 	}
 };
 

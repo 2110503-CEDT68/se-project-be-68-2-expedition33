@@ -8,8 +8,7 @@ const END_DATE = new Date("2022-05-13");
 // add const for cleaner code
 const isValidBookingDate = (date) => date >= START_DATE && date <= END_DATE;
 const isOwnerOrAdmin = (booking, user) =>
-	booking &&
-	booking.user &&
+	booking?.user &&
 	(booking.user.toString() === user.id || user.role === "admin");
 
 //@desc     Get all bookings
@@ -23,11 +22,7 @@ exports.getBookings = async (req, res, next) => {
 	};
 	const userPopulate = { path: "user", select: "name email" };
 
-	if (req.user.role !== "admin") {
-		query = Booking.find({ user: req.user.id })
-			.populate(companyPopulate)
-			.populate(userPopulate);
-	} else {
+	if (req.user.role === "admin") {
 		if (req.params.companyId) {
 			query = Booking.find({ company: req.params.companyId })
 				.populate(companyPopulate)
@@ -35,6 +30,10 @@ exports.getBookings = async (req, res, next) => {
 		} else {
 			query = Booking.find().populate(companyPopulate).populate(userPopulate);
 		}
+	} else {
+		query = Booking.find({ user: req.user.id })
+			.populate(companyPopulate)
+			.populate(userPopulate);
 	}
 
 	try {
@@ -50,6 +49,7 @@ exports.getBookings = async (req, res, next) => {
 				.status(400)
 				.json({ success: false, msg: "Invalid Company ID" });
 		res.status(500).json({ success: false, msg: "Cannot find Booking" });
+		console.log(err);
 	}
 };
 
@@ -82,6 +82,7 @@ exports.getBooking = async (req, res, next) => {
 		res.status(200).json({ success: true, data: booking });
 	} catch (err) {
 		res.status(500).json({ success: false, msg: "Cannot find Booking" });
+		console.log(err);
 	}
 };
 
@@ -128,6 +129,7 @@ exports.addBooking = async (req, res, next) => {
 		if (err.name === "ValidationError")
 			return res.status(400).json({ success: false, msg: err.message });
 		res.status(500).json({ success: false, msg: "Cannot create Booking" });
+		console.log(err);
 	}
 };
 
@@ -177,6 +179,7 @@ exports.updateBooking = async (req, res, next) => {
 				.status(400)
 				.json({ success: false, msg: "Invalid Company ID" });
 		res.status(500).json({ success: false, msg: "Cannot update Booking" });
+		console.log(err);
 	}
 };
 
@@ -206,5 +209,6 @@ exports.deleteBooking = async (req, res, next) => {
 		res.status(200).json({ success: true, data: {} });
 	} catch (err) {
 		res.status(500).json({ success: false, msg: "Cannot delete Booking" });
+		console.log(err);
 	}
 };
