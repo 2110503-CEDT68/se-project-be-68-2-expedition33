@@ -36,8 +36,7 @@ module.exports = router;
  *         bookingDate:
  *           type: string
  *           format: date
- *           description: The date of the booking (Must be between May 10-13, 2022)
- *           example: 2022-05-10
+ *           description: The date of the booking (Must be between May 10-13, 2026)
  *         user:
  *           type: string
  *           format: uuid
@@ -50,6 +49,12 @@ module.exports = router;
  *           type: string
  *           format: date-time
  *           description: The timestamp when the booking was created
+ *       example:
+ *         id: "64c8d1f2e4b0c2a1d8f9e0a2"
+ *         bookingDate: "2026-05-10"
+ *         user: "60df1b9b9c9d440000a1b2c4"
+ *         company: "60d0fe4f5311236168a109ca"
+ *         createdAt: "2026-04-08T03:24:21.000Z"
  */
 
 /**
@@ -148,11 +153,11 @@ module.exports = router;
  *               bookingDate:
  *                 type: string
  *                 format: date
- *                 example: 2022-05-10
+ *                 example: "2026-05-10"
  *               user:
  *                 type: string
  *                 format: uuid
- *                 example: 60df1b9b9c9d440000a1b2c4
+ *                 example: "60df1b9b9c9d440000a1b2c4"
  *     responses:
  *       201:
  *         description: The booking was successfully created
@@ -220,7 +225,7 @@ module.exports = router;
  *               bookingDate:
  *                 type: string
  *                 format: date
- *                 example: 2022-05-13
+ *                 example: "2026-05-13"
  *     responses:
  *       200:
  *         description: The booking was successfully updated
