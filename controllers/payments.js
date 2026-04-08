@@ -16,7 +16,7 @@ exports.getPayments = async (req, res) => {
 
 	// Stringify and inject MongoDB operators (e.g. gt -> $gt)
 	let queryStr = JSON.stringify(reqQuery);
-	queryStr = queryStr.replace(
+	queryStr = queryStr.replaceAll(
 		/\b(gt|gte|lt|lte|in)\b/g,
 		(match) => `$${match}`,
 	);
@@ -39,8 +39,8 @@ exports.getPayments = async (req, res) => {
 	}
 
 	// Pagination setup
-	const page = parseInt(req.query.page, 10) || 1;
-	const limit = parseInt(req.query.limit, 10) || 25;
+	const page = Number.parseInt(req.query.page, 10) || 1;
+	const limit = Number.parseInt(req.query.limit, 10) || 25;
 	const startIndex = (page - 1) * limit;
 	const endIndex = page * limit;
 
@@ -68,6 +68,7 @@ exports.getPayments = async (req, res) => {
 		});
 	} catch (err) {
 		res.status(500).json({ success: false, msg: "Cannot fetch Payments" });
+		console.log(err);
 	}
 };
 
@@ -88,6 +89,7 @@ exports.getPayment = async (req, res) => {
 		res.status(200).json({ success: true, data: payment });
 	} catch (err) {
 		res.status(500).json({ success: false, msg: "Cannot fetch Payment" });
+		console.log(err);
 	}
 };
 
@@ -152,5 +154,6 @@ exports.deletePayment = async (req, res) => {
 		res.status(200).json({ success: true, data: {} });
 	} catch (err) {
 		res.status(500).json({ success: false, msg: "Cannot delete Payment" });
+		console.log(err);
 	}
 };
