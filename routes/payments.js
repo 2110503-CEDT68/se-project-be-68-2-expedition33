@@ -8,7 +8,8 @@ const {
 } = require("../controllers/payments");
 const { protect, authorize } = require("../middleware/auth");
 
-const router = express.Router();
+// CRITICAL: mergeParams: true allows this router to read :companyId from parent routers!
+const router = express.Router({ mergeParams: true });
 
 router
 	.route("/")
@@ -74,9 +75,16 @@ module.exports = router;
  *         company: "60d0fe4f5311236168a109ca"
  *         totalPrice: 1500
  *         status: "initiated"
- *         "dateList": ["2022-05-10T00:00:00.000Z", "2022-05-11T00:00:00.000Z"]
- *         createdAt: "2022-04-08T03:24:21.000Z"
- *         updatedAt: "2022-04-08T03:24:21.000Z"
+ *         dateList: ["2026-05-10T00:00:00.000Z", "2026-05-11T00:00:00.000Z"]
+ *         events:
+ *           - eventType: "PAYMENT_INITIATED"
+ *             payload:
+ *               oldStatus: null
+ *               newStatus: "initiated"
+ *               transactionId: "txn_3L9xY2Z"
+ *             createdAt: "2026-04-09T01:29:12.000Z"
+ *         createdAt: "2026-04-08T03:24:21.000Z"
+ *         updatedAt: "2026-04-09T01:29:12.000Z"
  */
 
 /**
@@ -113,12 +121,24 @@ module.exports = router;
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Payment'
+ */
+
+/**
+ * @swagger
+ * /companies/{companyId}/payments:
  *   post:
  *     summary: Create a new payment (Invoice)
  *     description: Access - Private (Admin, Company). Automatically calculates total price based on dates.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: companyId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the company being billed
  *     requestBody:
  *       required: true
  *       content:
@@ -126,18 +146,14 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - company
  *               - dateList
  *             properties:
- *               company:
- *                 type: string
- *                 example: "60d0fe4f5311236168a109ca"
  *               dateList:
  *                 type: array
  *                 items:
  *                   type: string
  *                   format: date-time
- *                 example: ["2022-05-10T00:00:00.000Z", "2022-05-11T00:00:00.000Z"]
+ *                 example: ["2026-05-10T00:00:00.000Z", "2026-05-11T00:00:00.000Z"]
  *     responses:
  *       201:
  *         description: The payment was successfully created
@@ -150,6 +166,10 @@ module.exports = router;
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/Payment'
+ *       400:
+ *         description: Validation errors or dates without bookings
+ *       404:
+ *         description: Company not found
  */
 
 /**
@@ -183,8 +203,8 @@ module.exports = router;
  *       404:
  *         description: The payment was not found
  *   put:
- *     summary: Update a payment status (Webhook / Internal)
- *     description: Access - Private (Admin). Used to update payment status and log events.
+ *     summary: Update a payment status (Webhook / System)
+ *     description: Access - Private (Admin). Used by the system to update payment status and auto-log events.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -201,6 +221,8 @@ module.exports = router;
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - status
  *             properties:
  *               status:
  *                 type: string
@@ -210,6 +232,10 @@ module.exports = router;
  *                 type: string
  *                 description: Optional error message if payment failed
  *                 example: "Insufficient funds"
+ *               transactionId:
+ *                 type: string
+ *                 description: Optional banking transaction identifier
+ *                 example: "txn_3L9xY2Z"
  *     responses:
  *       200:
  *         description: The payment was updated

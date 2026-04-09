@@ -6,13 +6,15 @@ const Booking = require("../models/Booking");
 const START_DATE = new Date("2022-05-10");
 const END_DATE = new Date("2022-05-13");
 
+// price per organized day
+const DEFAULT_DAILY_RATE = 100; // Default daily rate waiting for SUA AND PI MAX
+
 // add const for cleaner code
 const isValidPaymentDate = (date) => date >= START_DATE && date <= END_DATE;
 const isOwnerOrAdmin = (booking, user) =>
 	booking?.user &&
 	(booking.user.toString() === user.id || user.role === "admin");
 const toDateKey = (date) => date.toISOString().split("T")[0]; // "YYYY-MM-DD"
-
 
 //@desc		Get all payments
 //@route	GET /api/v1/payments
@@ -106,45 +108,45 @@ exports.getPayment = async (req, res) => {
 	}
 };
 
-const DEFAULT_DAILY_RATE = 100; // Default daily rate waiting for SUA AND PI MAX
-
 //@desc     Create payment
-//@route    POST /api/v1/payments
+//@route    POST /api/v1/companies/:companyId/payments
 //@access   Private
 exports.createPayment = async (req, res) => {
 	try {
-		const { company, dateList } = req.body;
+		const companyId = req.params.companyId;
+		const company = await Company.findById(companyId);
 
 		if (!company) {
-      		return res.status(400).json({ success: false, msg: "Company is required" });
-    	}
-
-		if (!dateList || !Array.isArray(dateList) || dateList.length === 0) {
-	  		return res.status(400).json({ success: false, msg: "dateList must be a non-empty array" });
+			return res.status(404).json({
+				success: false,
+				msg: `No company with the id of ${req.params.companyId}`,
+			});
 		}
 
-		const companyData = await Company.findById(company).select("_id");
+		const { dateList } = req.body;
 
-		if (!companyData){
-			return res.status(404).json({ success: false, msg: "Company not found" });
+		if (!dateList || !Array.isArray(dateList) || dateList.length === 0) {
+			return res
+				.status(400)
+				.json({ success: false, msg: "dateList must be a non-empty array" });
 		}
 
 		const normalizedDates = [];
 		const uniqueDateKeys = new Set();
 
-		for (const d of dateList){
+		for (const d of dateList) {
 			const parsed = new Date(d);
-			if(Number.isNaN(parsed.getTime())){
-				return res.status(400).json({ 
-					success: false, 
-					msg: `Invalid date format: ${d}` 
+			if (Number.isNaN(parsed.getTime())) {
+				return res.status(400).json({
+					success: false,
+					msg: `Invalid date format: ${d}`,
 				});
 			}
 
 			if (!isValidPaymentDate(parsed)) {
-				return res.status(400).json({ 
-					success: false, 
-					msg: `Date ${d} is out of allowed range (May 10-13, 2022)`
+				return res.status(400).json({
+					success: false,
+					msg: `Date ${d} is out of allowed range (May 10-13, 2022)`,
 				});
 			}
 
@@ -155,36 +157,37 @@ exports.createPayment = async (req, res) => {
 			}
 		}
 
-		const booked = await Booking.find({ 
-			company, 
-			bookingDate: { $in: normalizedDates } 
+		const booked = await Booking.find({
+			companyId,
+			bookingDate: { $in: normalizedDates },
 		}).select("bookingDate -_id");
 
-		const bookedSet = new Set(booked.map(b => toDateKey(b.bookingDate)));
-		const notPurchaseDates = [...uniqueDateKeys].filter((d) => !bookedSet.has(d))
-		
+		const bookedSet = new Set(booked.map((b) => toDateKey(b.bookingDate)));
+		const notPurchaseDates = [...uniqueDateKeys].filter(
+			(d) => !bookedSet.has(d),
+		);
+
 		if (notPurchaseDates.length > 0) {
-			return res.status(400).json({ 
-				success: false, 
-				msg: `Cannot purchase for dates without bookings: ${notPurchaseDates.join(", ")}`
+			return res.status(400).json({
+				success: false,
+				msg: `Cannot purchase for dates without bookings: ${notPurchaseDates.join(", ")}`,
 			});
 		}
 
 		const totalPrice = normalizedDates.length * DEFAULT_DAILY_RATE;
 
 		const payment = await Payment.create({
-		company,
-		dateList: normalizedDates,
-		totalPrice,
-		status: "initiated",
-		events: [
-        		{
-         	 	eventType: "PAYMENT_INITIATED",
-        	 	 payload: { oldStatus: null, newStatus: "initiated" },
-        		},
-      		],
-    	});
-
+			companyId,
+			dateList: normalizedDates,
+			totalPrice,
+			status: "initiated",
+			events: [
+				{
+					eventType: "PAYMENT_INITIATED",
+					payload: { oldStatus: null, newStatus: "initiated" },
+				},
+			],
+		});
 
 		res.status(201).json({ success: true, data: payment });
 	} catch (err) {

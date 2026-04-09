@@ -7,12 +7,14 @@ const {
 	deleteCompany,
 } = require("../controllers/companies");
 const bookingRouter = require("./bookings");
+const paymentRouter = require("./payments");
 const { protect, authorize } = require("../middleware/auth");
 
 const router = express.Router();
 
 // Re-route into other resource routers
 router.use("/:companyId/bookings", bookingRouter);
+router.use("/:companyId/payments", paymentRouter);
 
 router
 	.route("/")
