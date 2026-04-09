@@ -1,5 +1,6 @@
 const Company = require("../models/Company");
 const Booking = require("../models/Booking");
+const Payment = require("../models/Payment");
 
 //@desc		Get all companies
 //@route	GET /api/v1/companies
@@ -168,6 +169,7 @@ exports.deleteCompany = async (req, res) => {
 
 		// Cascade delete to bookings and then delete company
 		await Booking.deleteMany({ company: company_id });
+		await Payment.deleteMany({ company: company_id });
 		await Company.deleteOne({ _id: company_id });
 
 		res.status(200).json({ success: true, data: {} });
