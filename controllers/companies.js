@@ -157,6 +157,8 @@ exports.updateCompany = async (req, res) => {
 //@access	Private
 exports.deleteCompany = async (req, res) => {
 	try {
+		session.startTransaction();
+
 		const company_id = req.params.id;
 		const company = await Company.findById(company_id);
 
@@ -172,11 +174,30 @@ exports.deleteCompany = async (req, res) => {
 		await Payment.deleteMany({ company: company_id });
 		await Company.deleteOne({ _id: company_id });
 
+		await session.commitTransaction();
 		res.status(200).json({ success: true, data: {} });
 	} catch (err) {
-		if (err.name === "CastError")
+		if (session.inTransaction()){
+			await session.abortTransaction();
+		}
+		
+		if (err.name === "CastError"){
 			return res.status(400).json({ success: false, msg: "Invalid ID" });
-		res.status(500).json({ success: false, msg: "Cannot delete Company" });
+		}
+
+		if (err.statusCode){
+			return res.status(err.statusCode).json({ 
+				success: false, 
+				msg: err.message 
+			});
+		}
+
+		res.status(500).json({ 
+			success: false, 
+			msg: "Cannot delete Company" 
+		});
 		console.log(err);
+	} finally {
+		await session.endSession();
 	}
 };
