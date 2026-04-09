@@ -123,7 +123,7 @@ exports.createPayment = async (req, res) => {
 	  		return res.status(400).json({ success: false, msg: "dateList must be a non-empty array" });
 		}
 
-		const companyData = await Company.findById(company).select("id");
+		const companyData = await Company.findById(company).select("_id");
 
 		if (!companyData){
 			return res.status(404).json({ success: false, msg: "Company not found" });
