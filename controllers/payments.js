@@ -1,5 +1,18 @@
 const Company = require("../models/Company");
 const Payment = require("../models/Payment");
+const Booking = require("../models/Booking");
+
+// allowed date range
+const START_DATE = new Date("2022-05-10");
+const END_DATE = new Date("2022-05-13");
+
+// add const for cleaner code
+const isValidPaymentDate = (date) => date >= START_DATE && date <= END_DATE;
+const isOwnerOrAdmin = (booking, user) =>
+	booking?.user &&
+	(booking.user.toString() === user.id || user.role === "admin");
+const toDateKey = (date) => date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+
 
 //@desc		Get all payments
 //@route	GET /api/v1/payments
@@ -93,12 +106,85 @@ exports.getPayment = async (req, res) => {
 	}
 };
 
+const DEFAULT_DAILY_RATE = 100; // Default daily rate waiting for SUA AND PI MAX
+
 //@desc     Create payment
 //@route    POST /api/v1/payments
 //@access   Private
 exports.createPayment = async (req, res) => {
 	try {
-		const payment = await Payment.create(req.body);
+		const { company, dateList } = req.body;
+
+		if (!company) {
+      		return res.status(400).json({ success: false, msg: "Company is required" });
+    	}
+
+		if (!dateList || !Array.isArray(dateList) || dateList.length === 0) {
+	  		return res.status(400).json({ success: false, msg: "dateList must be a non-empty array" });
+		}
+
+		const companyData = await Company.findById(company).select("id");
+
+		if (!companyData){
+			return res.status(404).json({ success: false, msg: "Company not found" });
+		}
+
+		const normalized = [];
+		const unique = new Set();
+
+		for (const d of dateList){
+			const parsed = new Date(d);
+			if(Number.isNaN(parsed.getTime())){
+				return res.status(400).json({ 
+					success: false, 
+					msg: `Invalid date format: ${d}` 
+				});
+			}
+
+			if (!isValidPaymentDate(parsed)) {
+				return res.status(400).json({ 
+					success: false, 
+					msg: `Date ${d} is out of allowed range (May 10-13, 2022)`
+				});
+			}
+
+			const dayKey = toDateKey(parsed);
+			if (!uniqueDateKeys.has(dayKey)) {
+				uniqueDateKeys.add(dayKey);
+				normalizedDates.push(new Date(dayKey));
+			}
+		}
+
+		const booked = await Booking.find({ 
+			company, 
+			bookingDate: { $in: normalizedDates } 
+		}).select("bookingDate -id");
+
+		const bookedSet = new Set(booked.map(b => toDateKey(b.bookingDate)));
+		const notPurchaseDates = [...uniqueDateKeys].filter((d) => !bookedSet.has(d))
+		
+		if (notPurchaseDates.length > 0) {
+			return res.status(400).json({ 
+				success: false, 
+				msg: `Cannot purchase for dates without bookings: ${notPurchaseDates.join(", ")}`
+			});
+		}
+
+		const totalPrice = normalizedDates.length * DEFAULT_DAILY_RATE;
+
+		const payment = await Payment.create({
+		company,
+		dateList: normalizedDates,
+		totalPrice,
+		status: "initiated",
+		events: [
+        		{
+         	 	eventType: "PAYMENT_INITIATED",
+        	 	 payload: { oldStatus: null, newStatus: "initiated" },
+        		},
+      		],
+    	});
+
 
 		res.status(201).json({ success: true, data: payment });
 	} catch (err) {
@@ -107,7 +193,7 @@ exports.createPayment = async (req, res) => {
 			return res.status(400).json({ success: false, msg: messages });
 		}
 		res.status(500).json({ success: false, msg: "Cannot create Payment" });
-		console.log(err);
+		console.log(err); // for TESTER AND DEV to debug if needed
 	}
 };
 
