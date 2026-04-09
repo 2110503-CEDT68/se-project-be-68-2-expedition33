@@ -74,9 +74,9 @@ module.exports = router;
  *         company: "60d0fe4f5311236168a109ca"
  *         totalPrice: 1500
  *         status: "initiated"
- *         dateList: ["2026-05-10T00:00:00.000Z", "2026-05-11T00:00:00.000Z"]
- *         createdAt: "2026-04-08T03:24:21.000Z"
- *         updatedAt: "2026-04-08T03:24:21.000Z"
+ *         "dateList": ["2022-05-10T00:00:00.000Z", "2022-05-11T00:00:00.000Z"]
+ *         createdAt: "2022-04-08T03:24:21.000Z"
+ *         updatedAt: "2022-04-08T03:24:21.000Z"
  */
 
 /**
@@ -137,7 +137,7 @@ module.exports = router;
  *                 items:
  *                   type: string
  *                   format: date-time
- *                 example: ["2026-05-10T00:00:00.000Z", "2026-05-11T00:00:00.000Z"]
+ *                 example: ["2022-05-10T00:00:00.000Z", "2022-05-11T00:00:00.000Z"]
  *     responses:
  *       201:
  *         description: The payment was successfully created

@@ -129,8 +129,8 @@ exports.createPayment = async (req, res) => {
 			return res.status(404).json({ success: false, msg: "Company not found" });
 		}
 
-		const normalized = [];
-		const unique = new Set();
+		const normalizedDates = [];
+		const uniqueDateKeys = new Set();
 
 		for (const d of dateList){
 			const parsed = new Date(d);
@@ -158,7 +158,7 @@ exports.createPayment = async (req, res) => {
 		const booked = await Booking.find({ 
 			company, 
 			bookingDate: { $in: normalizedDates } 
-		}).select("bookingDate -id");
+		}).select("bookingDate -_id");
 
 		const bookedSet = new Set(booked.map(b => toDateKey(b.bookingDate)));
 		const notPurchaseDates = [...uniqueDateKeys].filter((d) => !bookedSet.has(d))
