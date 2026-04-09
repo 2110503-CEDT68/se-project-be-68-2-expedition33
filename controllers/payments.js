@@ -15,6 +15,21 @@ const isOwnerOrAdmin = (booking, user) =>
 	booking?.user &&
 	(booking.user.toString() === user.id || user.role === "admin");
 const toDateKey = (date) => date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+const statusLog = (oldStatus, newStatus) => {
+	if (oldStatus === null && newStatus == "initiated") {
+		return "PAYMENT_INITIATED";
+	} else if (oldStatus == "initiated" && newStatus == "authorized") {
+		return "PAYMENT_AUTHORIZED";
+	} else if (oldStatus == "authorized" && newStatus == "captured") {
+		return "PAYMENT_SUCCESS";
+	} else if (oldStatus == "authorized" && newStatus == "failed") {
+		return "PAYMENT_FAILED";
+	} else if (oldStatus == "authorized" && newStatus == "cancelled") {
+		return "PAYMENT_CANCELLED";
+	} else {
+		return null;
+	}
+};
 
 //@desc		Get all payments
 //@route	GET /api/v1/payments
@@ -205,16 +220,33 @@ exports.createPayment = async (req, res) => {
 //@access   Private
 exports.updatePayment = async (req, res) => {
 	try {
-		const payment = await Payment.findByIdAndUpdate(req.params.id, req.body, {
-			new: true,
-			runValidators: true,
-		});
+		const payment = await Payment.findById(req.params.id);
 
 		if (!payment) {
 			return res.status(404).json({
 				success: false,
 				msg: `Payment not found with id of ${req.params.id}`,
 			});
+		}
+
+		const { status, errorMessage, transactionId } = req.body;
+
+		if (status && status !== payment.status) {
+			const oldStatus = payment.status;
+			payment.status = status;
+
+			// add event log
+			payment.events.push({
+				eventType: statusLog(oldStatus, status),
+				payload: {
+					oldStatus,
+					newStatus: status,
+					errorMessage: errorMessage || null,
+					transactionId: transactionId || null,
+				},
+			});
+
+			await payment.save();
 		}
 
 		res.status(200).json({ success: true, data: payment });
