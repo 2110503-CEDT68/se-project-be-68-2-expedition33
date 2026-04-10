@@ -2,7 +2,7 @@ const express = require("express");
 const {
 	getPayments,
 	getPayment,
-	createPayment,
+	addPayment,
 	updatePayment,
 	deletePayment,
 } = require("../controllers/payments");
@@ -14,7 +14,7 @@ const router = express.Router({ mergeParams: true });
 router
 	.route("/")
 	.get(protect, authorize("admin", "company"), getPayments)
-	.post(protect, authorize("admin", "company"), createPayment);
+	.post(protect, authorize("admin", "company"), addPayment);
 router
 	.route("/:id")
 	.get(protect, authorize("admin", "company"), getPayment)
@@ -127,7 +127,7 @@ module.exports = router;
  * @swagger
  * /companies/{companyId}/payments:
  *   post:
- *     summary: Create a new payment (Invoice)
+ *     summary: Add a new payment item (Invoice)
  *     description: Access - Private (Admin, Company). Automatically calculates total price based on dates.
  *     tags: [Payments]
  *     security:

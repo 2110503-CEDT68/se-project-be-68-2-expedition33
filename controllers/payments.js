@@ -123,10 +123,10 @@ exports.getPayment = async (req, res) => {
 	}
 };
 
-//@desc     Create payment
+//@desc     Add a payment item
 //@route    POST /api/v1/companies/:companyId/payments
 //@access   Private
-exports.createPayment = async (req, res) => {
+exports.addPayment = async (req, res) => {
 	try {
 		const companyId = req.params.companyId;
 		const company = await Company.findById(companyId);
