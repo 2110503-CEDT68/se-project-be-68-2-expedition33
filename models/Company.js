@@ -42,6 +42,11 @@ const CompanySchema = new mongoose.Schema(
 			type: String,
 			required: [true, "Please add a description"],
 		},
+		managerAccount: {
+			type: mongoose.Schema.ObjectId,
+			ref: "User",
+			required: [true, "Please assign a manager account to this company"],
+		},
 	},
 	{
 		toJSON: { virtuals: true },
