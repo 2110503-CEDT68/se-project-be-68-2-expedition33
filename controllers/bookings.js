@@ -30,6 +30,19 @@ exports.getBookings = async (req, res, next) => {
 		} else {
 			query = Booking.find().populate(companyPopulate).populate(userPopulate);
 		}
+	} else if (req.user.role === "company") {
+		const company = await Company.findOne({ managerAccount: req.user.id });
+
+		if (!company) {
+			return res.status(404).json({
+				success: false,
+				msg: "No company associated with this account",
+			});
+		}
+
+		query = Booking.find({ company: company.id })
+			.populate(companyPopulate)
+			.populate(userPopulate);
 	} else {
 		query = Booking.find({ user: req.user.id })
 			.populate(companyPopulate)
