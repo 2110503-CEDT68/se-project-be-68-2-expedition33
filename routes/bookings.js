@@ -10,7 +10,10 @@ const { protect, authorize } = require("../middleware/auth");
 
 const router = express.Router({ mergeParams: true });
 
-router.route("/").get(protect, getBookings).post(protect, addBooking);
+router
+	.route("/")
+	.get(protect, getBookings)
+	.post(protect, authorize("user", "admin"), addBooking);
 
 router
 	.route("/:id")

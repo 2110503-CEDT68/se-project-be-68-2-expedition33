@@ -7,9 +7,23 @@ const END_DATE = new Date("2022-05-13");
 
 // add const for cleaner code
 const isValidBookingDate = (date) => date >= START_DATE && date <= END_DATE;
-const isOwnerOrAdmin = (booking, user) =>
-	booking?.user &&
-	(booking.user.toString() === user.id || user.role === "admin");
+const isOwnerOrAdmin = async (booking, user) => {
+	if (!booking?.user) return false;
+
+	if (user.role === "admin") return true;
+
+	if (user.role === "company") {
+		const company = await Company.findOne({ managerAccount: user.id });
+
+		if (!company) {
+			return false;
+		}
+
+		return booking.company.toString() === company.id;
+	}
+
+	return booking.user.toString() === user.id;
+};
 
 //@desc     Get all bookings
 //@route    GET /api/v1/bookings
@@ -85,7 +99,8 @@ exports.getBooking = async (req, res, next) => {
 		}
 
 		// ownership check
-		if (!isOwnerOrAdmin(booking, req.user)) {
+		const isAuthorized = await isOwnerOrAdmin(booking, req.user);
+		if (!isAuthorized) {
 			return res.status(403).json({
 				success: false,
 				msg: `Not authorized to view this booking with id of ${req.params.id}`,
@@ -160,7 +175,8 @@ exports.updateBooking = async (req, res, next) => {
 			});
 		}
 
-		if (!isOwnerOrAdmin(booking, req.user)) {
+		const isAuthorized = await isOwnerOrAdmin(booking, req.user);
+		if (!isAuthorized) {
 			return res.status(403).json({
 				success: false,
 				msg: `Not authorized to update this booking with id of ${req.params.id}`,
@@ -210,7 +226,8 @@ exports.deleteBooking = async (req, res, next) => {
 			});
 		}
 
-		if (!isOwnerOrAdmin(booking, req.user)) {
+		const isAuthorized = await isOwnerOrAdmin(booking, req.user);
+		if (!isAuthorized) {
 			return res.status(403).json({
 				success: false,
 				msg: `Not authorized to delete this booking with id of ${req.params.id}`,
