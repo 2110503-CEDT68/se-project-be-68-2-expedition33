@@ -1,6 +1,5 @@
 const Company = require("../models/Company");
 const Payment = require("../models/Payment");
-const Booking = require("../models/Booking");
 
 // allowed date range
 const START_DATE = new Date("2022-05-10");
@@ -11,9 +10,6 @@ const DEFAULT_DAILY_RATE = 100; // Default daily rate waiting for SUA AND PI MAX
 
 // add const for cleaner code
 const isValidPaymentDate = (date) => date >= START_DATE && date <= END_DATE;
-const isOwnerOrAdmin = (booking, user) =>
-	booking?.user &&
-	(booking.user.toString() === user.id || user.role === "admin");
 const toDateKey = (date) => date.toISOString().split("T")[0]; // "YYYY-MM-DD"
 const statusLog = (oldStatus, newStatus) => {
 	if (oldStatus === null && newStatus == "initiated") {
@@ -29,6 +25,17 @@ const statusLog = (oldStatus, newStatus) => {
 	} else {
 		return null;
 	}
+};
+const authorizePayment = async (req, payment) => {
+	if (req.user.role === "admin") return true;
+
+	if (req.user.role === "company") {
+		const company = await Company.findOne({ managerAccount: req.user.id });
+
+		return payment.company.toString() === company?.id;
+	}
+
+	return false;
 };
 
 //@desc		Get all payments
@@ -50,9 +57,23 @@ exports.getPayments = async (req, res) => {
 		/\b(gt|gte|lt|lte|in)\b/g,
 		(match) => `$${match}`,
 	);
+	const parsedQuery = JSON.parse(queryStr);
+
+	// Filter for company payments viewing
+	if (req.user.role === "company") {
+		const company = await Company.findOne({ managerAccount: req.user.id });
+
+		if (!company) {
+			return res
+				.status(404)
+				.json({ success: false, msg: "No company found for this user" });
+		}
+
+		parsedQuery.company = company.id;
+	}
 
 	// Base query with company details populated
-	query = Payment.find(JSON.parse(queryStr)).populate("company");
+	query = Payment.find(JSON.parse(parsedQuery)).populate("company");
 
 	// Apply field selection if specified
 	if (req.query.select) {
@@ -75,7 +96,7 @@ exports.getPayments = async (req, res) => {
 	const endIndex = page * limit;
 
 	try {
-		const total = await Payment.countDocuments(JSON.parse(queryStr));
+		const total = await Payment.countDocuments(parsedQuery);
 		query = query.skip(startIndex).limit(limit);
 
 		const payments = await query;
@@ -116,6 +137,14 @@ exports.getPayment = async (req, res) => {
 			});
 		}
 
+		const isAuthorized = await authorizePayment(req, payment);
+		if (!isAuthorized) {
+			return res.status(403).json({
+				success: false,
+				msg: "Not authorized to access this payment",
+			});
+		}
+
 		res.status(200).json({ success: true, data: payment });
 	} catch (err) {
 		res.status(500).json({ success: false, msg: "Cannot fetch Payment" });
@@ -135,6 +164,16 @@ exports.addPayment = async (req, res) => {
 			return res.status(404).json({
 				success: false,
 				msg: `No company with the id of ${req.params.companyId}`,
+			});
+		}
+
+		if (
+			req.user.role === "company" &&
+			company.managerAccount.toString() !== req.user.id
+		) {
+			return res.status(403).json({
+				success: false,
+				msg: "Not authorized to add payment for this company",
 			});
 		}
 
@@ -172,27 +211,9 @@ exports.addPayment = async (req, res) => {
 			}
 		}
 
-		const booked = await Booking.find({
-			companyId,
-			bookingDate: { $in: normalizedDates },
-		}).select("bookingDate -_id");
-
-		const bookedSet = new Set(booked.map((b) => toDateKey(b.bookingDate)));
-		const notPurchaseDates = [...uniqueDateKeys].filter(
-			(d) => !bookedSet.has(d),
-		);
-
-		if (notPurchaseDates.length > 0) {
-			return res.status(400).json({
-				success: false,
-				msg: `Cannot purchase for dates without bookings: ${notPurchaseDates.join(", ")}`,
-			});
-		}
-
 		const totalPrice = normalizedDates.length * DEFAULT_DAILY_RATE;
-
 		const payment = await Payment.create({
-			companyId,
+			company: companyId,
 			dateList: normalizedDates,
 			totalPrice,
 			status: "initiated",
@@ -229,15 +250,31 @@ exports.updatePayment = async (req, res) => {
 			});
 		}
 
+		const isAuthorized = await authorizePayment(req, payment);
+		if (!isAuthorized) {
+			return res.status(403).json({
+				success: false,
+				msg: "Not authorized to update this payment",
+			});
+		}
+
 		const { status, errorMessage, transactionId } = req.body;
 
 		if (status && status !== payment.status) {
 			const oldStatus = payment.status;
-			payment.status = status;
+			const eventType = statusLog(oldStatus, status);
 
-			// add event log
+			if (!eventType) {
+				return res.status(400).json({
+					success: false,
+					msg: `Invalid payment trasition from " + ${oldStatus} + " to ${status}?!?!? 😠 ⚠️⚠️⚠️ HACKER ALERT ⚠️⚠️⚠️!!!!`,
+				});
+			}
+
+			// Change payment status & add event log
+			payment.status = status;
 			payment.events.push({
-				eventType: statusLog(oldStatus, status),
+				eventType,
 				payload: {
 					oldStatus,
 					newStatus: status,
@@ -271,6 +308,14 @@ exports.deletePayment = async (req, res) => {
 			return res.status(404).json({
 				success: false,
 				msg: `Payment not found with id of ${req.params.id}`,
+			});
+		}
+
+		const isAuthorized = await authorizePayment(req, payment);
+		if (!isAuthorized) {
+			return res.status(403).json({
+				success: false,
+				msg: "Not authorized to delete this payment",
 			});
 		}
 
