@@ -73,7 +73,7 @@ exports.getPayments = async (req, res) => {
 	}
 
 	// Base query with company details populated
-	query = Payment.find(JSON.parse(parsedQuery)).populate("company");
+	query = Payment.find(parsedQuery).populate("company");
 
 	// Apply field selection if specified
 	if (req.query.select) {
