@@ -96,10 +96,9 @@ module.exports = router;
  *         description: A fast delivery service company.
  *         managerAccount: 60a1b2c3d4e5f6a7b8c9d0e1
  *         logo: https://drive.google.com/file/d/1a2b3c4d5e/view
- *         photoList:[
- *           "https://drive.google.com/file/d/1a2b3c4d5e_1/view",
- *           "https://drive.google.com/file/d/1a2b3c4d5e_2/view"
- *         ]
+ *         photoList:
+ *           - "https://drive.google.com/file/d/1a2b3c4d5e_1/view"
+ *           - "https://drive.google.com/file/d/1a2b3c4d5e_2/view"
  */
 
 /**
@@ -202,7 +201,7 @@ module.exports = router;
  *         description: The company was not found
  *   put:
  *     security:
- *       - bearerAuth:[]
+ *       - bearerAuth: []
  *     summary: Update the company by id
  *     tags: [Companies]
  *     parameters:
@@ -237,7 +236,7 @@ module.exports = router;
  *         description: Some error happened
  *   delete:
  *     security:
- *       - bearerAuth:[]
+ *       - bearerAuth: []
  *     summary: Remove the company by id
  *     tags: [Companies]
  *     parameters:

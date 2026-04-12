@@ -44,7 +44,7 @@ module.exports = router;
  *         email: "johndoe@example.com"
  *         tel: "0999999999"
  *         role: "user"
- *         createdAt: "2026-04-08T03:24:21.000Z"
+ *         createdAt: "2022-04-08T03:24:21.000Z"
  */
 
 /**

@@ -8,7 +8,7 @@ const {
 } = require("../controllers/payments");
 const { protect, authorize } = require("../middleware/auth");
 
-// CRITICAL: mergeParams: true allows this router to read :companyId from parent routers!
+// Allows this router to read :companyId from parent routers
 const router = express.Router({ mergeParams: true });
 
 router
@@ -59,8 +59,23 @@ module.exports = router;
  *             properties:
  *               eventType:
  *                 type: string
+ *                 enum: [PAYMENT_INITIATED, PAYMENT_AUTHORIZED, PAYMENT_FAILED, PAYMENT_SUCCESS, PAYMENT_CANCELLED]
  *               payload:
  *                 type: object
+ *                 properties:
+ *                   oldStatus:
+ *                     type: string
+ *                     enum: [initiated, authorized, captured, cancelled, failed]
+ *                     nullable: true
+ *                   newStatus:
+ *                     type: string
+ *                     enum: [initiated, authorized, captured, cancelled, failed]
+ *                   transactionId:
+ *                     type: string
+ *                     nullable: true
+ *                   errorMessage:
+ *                     type: string
+ *                     nullable: true
  *               createdAt:
  *                 type: string
  *                 format: date-time
@@ -73,18 +88,21 @@ module.exports = router;
  *       example:
  *         id: "64c8d1f2e4b0c2a1d8f9e0a1"
  *         company: "60d0fe4f5311236168a109ca"
- *         totalPrice: 1500
+ *         totalPrice: 200
  *         status: "initiated"
- *         dateList: ["2022-05-10T00:00:00.000Z", "2022-05-11T00:00:00.000Z"]
+ *         dateList:
+ *           - "2022-05-10T00:00:00.000Z"
+ *           - "2022-05-11T00:00:00.000Z"
  *         events:
  *           - eventType: "PAYMENT_INITIATED"
  *             payload:
  *               oldStatus: null
  *               newStatus: "initiated"
- *               transactionId: "txn_3L9xY2Z"
- *             createdAt: "2022-04-09T01:29:12.000Z"
- *         createdAt: "2022-04-08T03:24:21.000Z"
- *         updatedAt: "2022-04-09T01:29:12.000Z"
+ *               transactionId: null
+ *               errorMessage: null
+ *             createdAt: "2022-05-08T03:24:21.000Z"
+ *         createdAt: "2022-05-08T03:24:21.000Z"
+ *         updatedAt: "2022-05-08T03:24:21.000Z"
  */
 
 /**
@@ -99,7 +117,7 @@ module.exports = router;
  * /payments:
  *   get:
  *     summary: Returns the list of all payments
- *     description: Access - Private (Admin, Company)
+ *     description: Access --- Private (Admin, Company)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -128,7 +146,7 @@ module.exports = router;
  * /companies/{companyId}/payments:
  *   post:
  *     summary: Add a new payment item (Invoice)
- *     description: Access - Private (Admin, Company). Automatically calculates total price based on dates.
+ *     description: Access --- Private (Admin, Company). Automatically calculates total price based on dates.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -177,7 +195,7 @@ module.exports = router;
  * /payments/{id}:
  *   get:
  *     summary: Get a payment by id
- *     description: Access - Private (Admin, Company)
+ *     description: Access --- Private (Admin, Company)
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -204,7 +222,7 @@ module.exports = router;
  *         description: The payment was not found
  *   put:
  *     summary: Update a payment status (Webhook / System)
- *     description: Access - Private (Admin). Used by the system to update payment status and auto-log events.
+ *     description: Access --- Private (Admin). Used by the system to update payment status and auto-log events.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
