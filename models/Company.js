@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const driveRegex = /^https?:\/\/(?:drive|docs)\.google\.com\/.+/; // Regex for Google Drive / Docs
 
 const CompanySchema = new mongoose.Schema(
 	{
@@ -46,6 +47,23 @@ const CompanySchema = new mongoose.Schema(
 			type: mongoose.Schema.ObjectId,
 			ref: "User",
 			required: [true, "Please assign a manager account to this company"],
+		},
+		logo: {
+			type: String,
+			default: null,
+			match: [driveRegex, "Please add a valid Google Drive link for the logo"],
+		},
+		photoList: {
+			type: [String],
+			default: [],
+			validate: {
+				validator: function (list) {
+					if (!list || list.length === 0) return true; // Allow empty list (photos are optional)
+
+					return list.every((url) => driveRegex.test(url));
+				},
+				message: "All items in photoList must be valid Google Drive links",
+			},
 		},
 	},
 	{
