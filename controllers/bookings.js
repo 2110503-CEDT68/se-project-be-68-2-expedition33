@@ -24,12 +24,44 @@ const isOwnerOrAdmin = async (booking, user) => {
 
 	return booking.user.toString() === user.id;
 };
+const buildBookingQuery = async (user, parsedQuery, companyId) => {
+	const companyPopulate = {
+		path: "company",
+		select:
+			"name address district province postalcode tel website description logo photoList",
+	};
+	const userPopulate = { path: "user", select: "name email" };
+
+	if (user.role === "admin") {
+		if (companyId) {
+			parsedQuery.company = companyId;
+		}
+		return Booking.find(parsedQuery)
+			.populate(companyPopulate)
+			.populate(userPopulate);
+	}
+
+	if (user.role === "company") {
+		const company = await Company.findOne({ managerAccount: user.id });
+		if (!company) {
+			return null;
+		}
+		parsedQuery.company = company.id;
+		return Booking.find(parsedQuery)
+			.populate(companyPopulate)
+			.populate(userPopulate);
+	}
+
+	parsedQuery.user = user.id;
+	return Booking.find(parsedQuery)
+		.populate(companyPopulate)
+		.populate(userPopulate);
+};
 
 //@desc     Get all bookings
 //@route    GET /api/v1/bookings
 //@access   Private
 exports.getBookings = async (req, res, next) => {
-	let query;
 	// Copy req.query to avoid mutating the original
 	const reqQuery = { ...req.query };
 
@@ -45,46 +77,18 @@ exports.getBookings = async (req, res, next) => {
 	);
 	const parsedQuery = JSON.parse(queryStr);
 
-	const companyPopulate = {
-		path: "company",
-		select: "name address district province postalcode tel website description",
-	};
-	const userPopulate = { path: "user", select: "name email" };
+	// Role-based query scope and populate
+	let query = await buildBookingQuery(
+		req.user,
+		parsedQuery,
+		req.params.companyId,
+	);
 
-	// Role-based query scope:
-	// - admin: all bookings or bookings for a specific companyId if nested route is used
-	// - company: only bookings for the company owned by the current account
-	// - user: only current user's bookings
-	if (req.user.role === "admin") {
-		if (req.params.companyId) {
-			parsedQuery.company = req.params.companyId;
-			query = Booking.find(parsedQuery)
-				.populate(companyPopulate)
-				.populate(userPopulate);
-		} else {
-			query = Booking.find(parsedQuery)
-				.populate(companyPopulate)
-				.populate(userPopulate);
-		}
-	} else if (req.user.role === "company") {
-		const company = await Company.findOne({ managerAccount: req.user.id });
-
-		if (!company) {
-			return res.status(404).json({
-				success: false,
-				msg: "No company associated with this account",
-			});
-		}
-
-		parsedQuery.company = company.id;
-		query = Booking.find(parsedQuery)
-			.populate(companyPopulate)
-			.populate(userPopulate);
-	} else {
-		parsedQuery.user = req.user.id;
-		query = Booking.find(parsedQuery)
-			.populate(companyPopulate)
-			.populate(userPopulate);
+	if (!query) {
+		return res.status(404).json({
+			success: false,
+			msg: "No company associated with this account",
+		});
 	}
 
 	// Apply field selection if specified
@@ -111,7 +115,7 @@ exports.getBookings = async (req, res, next) => {
 		const total = await Booking.countDocuments(parsedQuery);
 		query = query.skip(startIndex).limit(limit);
 
-		const bookings = await query;
+		const bookings = query;
 
 		// Build pagination pointers if applicable
 		const pagination = {};
