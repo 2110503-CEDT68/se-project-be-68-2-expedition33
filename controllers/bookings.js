@@ -30,19 +30,41 @@ const isOwnerOrAdmin = async (booking, user) => {
 //@access   Private
 exports.getBookings = async (req, res, next) => {
 	let query;
+	// Copy req.query to avoid mutating the original
+	const reqQuery = { ...req.query };
+
+	// Exclude non-filter fields before building the query
+	const removeFields = ["select", "sort", "page", "limit"];
+	removeFields.forEach((param) => delete reqQuery[param]);
+
+	// Stringify and inject MongoDB operators (e.g. gt -> $gt)
+	let queryStr = JSON.stringify(reqQuery);
+	queryStr = queryStr.replaceAll(
+		/\b(gt|gte|lt|lte|in)\b/g,
+		(match) => `$${match}`,
+	);
+	const parsedQuery = JSON.parse(queryStr);
+
 	const companyPopulate = {
 		path: "company",
 		select: "name address district province postalcode tel website description",
 	};
 	const userPopulate = { path: "user", select: "name email" };
 
+	// Role-based query scope:
+	// - admin: all bookings or bookings for a specific companyId if nested route is used
+	// - company: only bookings for the company owned by the current account
+	// - user: only current user's bookings
 	if (req.user.role === "admin") {
 		if (req.params.companyId) {
-			query = Booking.find({ company: req.params.companyId })
+			parsedQuery.company = req.params.companyId;
+			query = Booking.find(parsedQuery)
 				.populate(companyPopulate)
 				.populate(userPopulate);
 		} else {
-			query = Booking.find().populate(companyPopulate).populate(userPopulate);
+			query = Booking.find(parsedQuery)
+				.populate(companyPopulate)
+				.populate(userPopulate);
 		}
 	} else if (req.user.role === "company") {
 		const company = await Company.findOne({ managerAccount: req.user.id });
@@ -54,20 +76,64 @@ exports.getBookings = async (req, res, next) => {
 			});
 		}
 
-		query = Booking.find({ company: company.id })
+		parsedQuery.company = company.id;
+		query = Booking.find(parsedQuery)
 			.populate(companyPopulate)
 			.populate(userPopulate);
 	} else {
-		query = Booking.find({ user: req.user.id })
+		parsedQuery.user = req.user.id;
+		query = Booking.find(parsedQuery)
 			.populate(companyPopulate)
 			.populate(userPopulate);
 	}
 
+	// Apply field selection if specified
+	if (req.query.select) {
+		const fields = req.query.select.split(",").join(" ");
+		query = query.select(fields);
+	}
+
+	// Apply sorting or default to newest first
+	if (req.query.sort) {
+		const sortBy = req.query.sort.split(",").join(" ");
+		query = query.sort(sortBy);
+	} else {
+		query = query.sort("-createdAt");
+	}
+
+	// Pagination setup
+	const page = Number.parseInt(req.query.page, 10) || 1;
+	const limit = Number.parseInt(req.query.limit, 10) || 25;
+	const startIndex = (page - 1) * limit;
+	const endIndex = page * limit;
+
 	try {
+		const total = await Booking.countDocuments(parsedQuery);
+		query = query.skip(startIndex).limit(limit);
+
 		const bookings = await query;
+
+		// Build pagination pointers if applicable
+		const pagination = {};
+
+		if (endIndex < total) {
+			pagination.next = {
+				page: page + 1,
+				limit,
+			};
+		}
+
+		if (startIndex > 0) {
+			pagination.prev = {
+				page: page - 1,
+				limit,
+			};
+		}
+
 		res.status(200).json({
 			success: true,
 			count: bookings.length,
+			pagination,
 			data: bookings,
 		});
 	} catch (err) {
