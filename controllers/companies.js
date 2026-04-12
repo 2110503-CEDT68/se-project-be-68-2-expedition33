@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Company = require("../models/Company");
 const Booking = require("../models/Booking");
 const Payment = require("../models/Payment");
@@ -50,8 +51,7 @@ exports.getCompanies = async (req, res, next) => {
 	const endIndex = page * limit;
 
 	try {
-		const total = await Company.countDocuments();
-
+		const total = await Company.countDocuments(JSON.parse(queryStr));
 		query = query.skip(startIndex).limit(limit);
 
 		// Executing query
@@ -61,17 +61,10 @@ exports.getCompanies = async (req, res, next) => {
 		const pagination = {};
 
 		if (endIndex < total) {
-			pagination.next = {
-				page: page + 1,
-				limit,
-			};
+			pagination.next = { page: page + 1, limit };
 		}
-
 		if (startIndex > 0) {
-			pagination.prev = {
-				page: page - 1,
-				limit,
-			};
+			pagination.prev = { page: page - 1, limit };
 		}
 
 		res.status(200).json({
@@ -91,7 +84,7 @@ exports.getCompanies = async (req, res, next) => {
 //@access	Public
 exports.getCompany = async (req, res) => {
 	try {
-		const company = await Company.findById(req.params.id);
+		const company = await Company.findById(req.params.id).populate("bookings");
 
 		if (!company) {
 			return res.status(404).json({
@@ -111,9 +104,24 @@ exports.getCompany = async (req, res) => {
 
 //@desc		Create a company
 //@route	POST /api/v1/companies
-//@access	Private
+//@access	Private (Admin only)
 exports.createCompany = async (req, res) => {
 	try {
+		const manager = req.body.user;
+
+		if (!manager) {
+			return res.status(404).json({
+				success: false,
+				msg: "The provided managerAccount user does not exist",
+			});
+		}
+		if (manager.role !== "company") {
+			return res.status(400).json({
+				success: false,
+				msg: "The assigned managerAccount must have the 'company' role",
+			});
+		}
+
 		const company = await Company.create(req.body);
 		res.status(201).json({ success: true, data: company });
 	} catch (err) {
@@ -126,9 +134,24 @@ exports.createCompany = async (req, res) => {
 
 //@desc		Update single company
 //@route	PUT /api/v1/companies/:id
-//@access	Private
+//@access	Private (Admin only)
 exports.updateCompany = async (req, res) => {
 	try {
+		const manager = req.body.user;
+
+		if (!manager) {
+			return res.status(404).json({
+				success: false,
+				msg: "The provided managerAccount user does not exist",
+			});
+		}
+		if (manager.role !== "company") {
+			return res.status(400).json({
+				success: false,
+				msg: "The assigned managerAccount must have the 'company' role",
+			});
+		}
+
 		const company = await Company.findByIdAndUpdate(req.params.id, req.body, {
 			new: true,
 			runValidators: true,
@@ -154,50 +177,44 @@ exports.updateCompany = async (req, res) => {
 
 //@desc		Delete single company
 //@route	DELETE /api/v1/companies/:id
-//@access	Private
+//@access	Private (Admin only)
 exports.deleteCompany = async (req, res) => {
+	const session = await mongoose.startSession();
+
 	try {
 		session.startTransaction();
 
 		const companyId = req.params.id;
-		const company = await Company.findById(companyId);
+		const company = await Company.findById(companyId).session(session);
 
 		if (!company) {
+			await session.abortTransaction();
+			session.endSession();
+
 			return res.status(404).json({
 				success: false,
 				msg: `No company with the id of ${companyId}`,
 			});
 		}
 
-		// Cascade delete to bookings, payments and then delete company
-		await Booking.deleteMany({ company: companyId });
-		await Payment.deleteMany({ company: companyId });
-		await Company.deleteOne({ _id: companyId });
+		// Cascade delete bounded to transaction
+		await Booking.deleteMany({ company: companyId }, { session });
+		await Payment.deleteMany({ company: companyId }, { session });
+		await Company.deleteOne({ _id: companyId }, { session });
 
 		await session.commitTransaction();
+		session.endSession();
+
 		res.status(200).json({ success: true, data: {} });
 	} catch (err) {
-		if (session.inTransaction()) {
-			await session.abortTransaction();
-		}
+		await session.abortTransaction();
+		session.endSession();
 
 		if (err.name === "CastError") {
 			return res.status(400).json({ success: false, msg: "Invalid ID" });
 		}
 
-		if (err.statusCode) {
-			return res.status(err.statusCode).json({
-				success: false,
-				msg: err.message,
-			});
-		}
-
-		res.status(500).json({
-			success: false,
-			msg: "Cannot delete Company",
-		});
+		res.status(500).json({ success: false, msg: "Cannot delete Company" });
 		console.log(err);
-	} finally {
-		await session.endSession();
 	}
 };

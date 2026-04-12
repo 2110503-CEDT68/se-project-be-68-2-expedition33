@@ -58,7 +58,7 @@ const CompanySchema = new mongoose.Schema(
 			default: [],
 			validate: {
 				validator: function (list) {
-					if (!list || list.length === 0) return true; // Allow empty list (photos are optional)
+					if (!list || list.length === 0) return true; // Photos are optional
 
 					return list.every((url) => driveRegex.test(url));
 				},

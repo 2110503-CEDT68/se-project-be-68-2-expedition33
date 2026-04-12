@@ -43,6 +43,7 @@ module.exports = router;
  *         - tel
  *         - website
  *         - description
+ *         - managerAccount
  *       properties:
  *         id:
  *           type: string
@@ -72,6 +73,17 @@ module.exports = router;
  *         description:
  *           type: string
  *           description: Brief description of the company
+ *         managerAccount:
+ *           type: string
+ *           description: The User ID of the company manager
+ *         logo:
+ *           type: string
+ *           description: Google Drive link for the company logo
+ *         photoList:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of Google Drive links for company photos
  *       example:
  *         id: 5f9f1b9b9c9d440000a1b2c3
  *         name: RizzExpress
@@ -82,6 +94,12 @@ module.exports = router;
  *         tel: "0812345678"
  *         website: https://www.rizzexpress.com
  *         description: A fast delivery service company.
+ *         managerAccount: 60a1b2c3d4e5f6a7b8c9d0e1
+ *         logo: https://drive.google.com/file/d/1a2b3c4d5e/view
+ *         photoList:[
+ *           "https://drive.google.com/file/d/1a2b3c4d5e_1/view",
+ *           "https://drive.google.com/file/d/1a2b3c4d5e_2/view"
+ *         ]
  */
 
 /**
@@ -184,7 +202,7 @@ module.exports = router;
  *         description: The company was not found
  *   put:
  *     security:
- *       - bearerAuth: []
+ *       - bearerAuth:[]
  *     summary: Update the company by id
  *     tags: [Companies]
  *     parameters:
@@ -219,7 +237,7 @@ module.exports = router;
  *         description: Some error happened
  *   delete:
  *     security:
- *       - bearerAuth: []
+ *       - bearerAuth:[]
  *     summary: Remove the company by id
  *     tags: [Companies]
  *     parameters:
