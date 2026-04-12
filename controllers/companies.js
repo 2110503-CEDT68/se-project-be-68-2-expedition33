@@ -159,42 +159,42 @@ exports.deleteCompany = async (req, res) => {
 	try {
 		session.startTransaction();
 
-		const company_id = req.params.id;
-		const company = await Company.findById(company_id);
+		const companyId = req.params.id;
+		const company = await Company.findById(companyId);
 
 		if (!company) {
 			return res.status(404).json({
 				success: false,
-				msg: `No company with the id of ${company_id}`,
+				msg: `No company with the id of ${companyId}`,
 			});
 		}
 
-		// Cascade delete to bookings and then delete company
-		await Booking.deleteMany({ company: company_id });
-		await Payment.deleteMany({ company: company_id });
-		await Company.deleteOne({ _id: company_id });
+		// Cascade delete to bookings, payments and then delete company
+		await Booking.deleteMany({ company: companyId });
+		await Payment.deleteMany({ company: companyId });
+		await Company.deleteOne({ _id: companyId });
 
 		await session.commitTransaction();
 		res.status(200).json({ success: true, data: {} });
 	} catch (err) {
-		if (session.inTransaction()){
+		if (session.inTransaction()) {
 			await session.abortTransaction();
 		}
-		
-		if (err.name === "CastError"){
+
+		if (err.name === "CastError") {
 			return res.status(400).json({ success: false, msg: "Invalid ID" });
 		}
 
-		if (err.statusCode){
-			return res.status(err.statusCode).json({ 
-				success: false, 
-				msg: err.message 
+		if (err.statusCode) {
+			return res.status(err.statusCode).json({
+				success: false,
+				msg: err.message,
 			});
 		}
 
-		res.status(500).json({ 
-			success: false, 
-			msg: "Cannot delete Company" 
+		res.status(500).json({
+			success: false,
+			msg: "Cannot delete Company",
 		});
 		console.log(err);
 	} finally {
