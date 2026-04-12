@@ -302,7 +302,7 @@ exports.updatePayment = async (req, res) => {
 //@access   Private
 exports.deletePayment = async (req, res) => {
 	try {
-		const payment = await Payment.findByIdAndDelete(req.params.id);
+		const payment = await Payment.findById(req.params.id);
 
 		if (!payment) {
 			return res.status(404).json({
@@ -318,6 +318,8 @@ exports.deletePayment = async (req, res) => {
 				msg: "Not authorized to delete this payment",
 			});
 		}
+
+		await Payment.findByIdAndDelete(req.params.id);
 
 		res.status(200).json({ success: true, data: {} });
 	} catch (err) {
