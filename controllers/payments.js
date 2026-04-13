@@ -20,7 +20,10 @@ const statusLog = (oldStatus, newStatus) => {
 		return "PAYMENT_SUCCESS";
 	} else if (oldStatus == "authorized" && newStatus == "failed") {
 		return "PAYMENT_FAILED";
-	} else if (oldStatus == "authorized" && newStatus == "cancelled") {
+	} else if (
+		(oldStatus == "authorized" || oldStatus == "initiated") &&
+		newStatus == "cancelled"
+	) {
 		return "PAYMENT_CANCELLED";
 	} else {
 		return null;
@@ -267,7 +270,7 @@ exports.updatePayment = async (req, res) => {
 			if (!eventType) {
 				return res.status(400).json({
 					success: false,
-					msg: `Invalid payment trasition from " + ${oldStatus} + " to ${status}?!?!? 😠 ⚠️⚠️⚠️ HACKER ALERT ⚠️⚠️⚠️!!!!`,
+					msg: `Invalid payment trasition from ${oldStatus} to ${status}?!?!? 😠 ⚠️⚠️⚠️ HACKER ALERT ⚠️⚠️⚠️!!!!`,
 				});
 			}
 
@@ -297,7 +300,7 @@ exports.updatePayment = async (req, res) => {
 	}
 };
 
-//@desc     Delete payment
+//@desc     Cancel payment
 //@route    DELETE /api/v1/payments/:id
 //@access   Private
 exports.deletePayment = async (req, res) => {
@@ -315,15 +318,48 @@ exports.deletePayment = async (req, res) => {
 		if (!isAuthorized) {
 			return res.status(403).json({
 				success: false,
-				msg: "Not authorized to delete this payment",
+				msg: "Not authorized to cancel this payment",
 			});
 		}
 
-		await Payment.findByIdAndDelete(req.params.id);
+		// Prevent cancelling already captured or cancelled payments
+		if (payment.status === "captured") {
+			return res.status(400).json({
+				success: false,
+				msg: "Cannot cancel a payment that has already been captured (NO REFUNDS 😈)",
+			});
+		}
+		if (payment.status === "cancelled") {
+			return res
+				.status(400)
+				.json({ success: false, msg: "Payment is already cancelled" });
+		}
+		if (payment.status === "failed") {
+			return res
+				.status(400)
+				.json({ success: false, msg: "Payment failed, cannot cancel" });
+		}
 
-		res.status(200).json({ success: true, data: {} });
+		const oldStatus = payment.status;
+		const newStatus = "cancelled";
+
+		// Update status and log event
+		payment.status = newStatus;
+		payment.events.push({
+			eventType: statusLog(oldStatus, newStatus),
+			payload: {
+				oldStatus,
+				newStatus,
+				errorMessage: "Payment cancelled via delete request",
+				transactionId: null,
+			},
+		});
+
+		await payment.save();
+
+		res.status(200).json({ success: true, data: payment });
 	} catch (err) {
-		res.status(500).json({ success: false, msg: "Cannot delete Payment" });
-		console.log(err); // FOR PASIT
+		res.status(500).json({ success: false, msg: "Cannot cancel Payment" });
+		console.log(err);
 	}
 };

@@ -117,7 +117,7 @@ module.exports = router;
  * /payments:
  *   get:
  *     summary: Returns the list of all payments
- *     description: Access --- Private (Admin, Company)
+ *     description: Access --- Private (Admin, Company). Company role gets only their own payments.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -145,8 +145,8 @@ module.exports = router;
  * @swagger
  * /companies/{companyId}/payments:
  *   post:
- *     summary: Add a new payment item (Invoice)
- *     description: Access --- Private (Admin, Company). Automatically calculates total price based on dates.
+ *     summary: Add a new payment item
+ *     description: Access --- Private (Admin, Company). Calculates total price based on dateList length.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -156,7 +156,7 @@ module.exports = router;
  *         schema:
  *           type: string
  *         required: true
- *         description: The ID of the company being billed
+ *         description: The ID of the company to bill
  *     requestBody:
  *       required: true
  *       content:
@@ -185,7 +185,7 @@ module.exports = router;
  *                 data:
  *                   $ref: '#/components/schemas/Payment'
  *       400:
- *         description: Validation errors or dates without bookings
+ *         description: Validation error or invalid date range
  *       404:
  *         description: Company not found
  */
@@ -195,7 +195,7 @@ module.exports = router;
  * /payments/{id}:
  *   get:
  *     summary: Get a payment by id
- *     description: Access --- Private (Admin, Company)
+ *     description: Access --- Private (Admin, Company). Ownership check enforced for Company role.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -208,7 +208,7 @@ module.exports = router;
  *         description: The payment id
  *     responses:
  *       200:
- *         description: The payment description by id
+ *         description: The payment data
  *         content:
  *           application/json:
  *             schema:
@@ -218,11 +218,9 @@ module.exports = router;
  *                   type: boolean
  *                 data:
  *                   $ref: '#/components/schemas/Payment'
- *       404:
- *         description: The payment was not found
  *   put:
- *     summary: Update a payment status (Webhook / System)
- *     description: Access --- Private (Admin). Used by the system to update payment status and auto-log events.
+ *     summary: Update payment status
+ *     description: Access --- Private (Admin only). Updates status and appends to event log.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -245,30 +243,13 @@ module.exports = router;
  *               status:
  *                 type: string
  *                 enum: [initiated, authorized, captured, cancelled, failed]
- *                 example: "failed"
- *               errorMessage:
- *                 type: string
- *                 description: Optional error message if payment failed
- *                 example: "Insufficient funds"
- *               transactionId:
- *                 type: string
- *                 description: Optional banking transaction identifier
- *                 example: "txn_3L9xY2Z"
+ *                 example: "captured"
  *     responses:
  *       200:
  *         description: The payment was updated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   $ref: '#/components/schemas/Payment'
  *   delete:
- *     summary: Remove the payment by id
- *     description: Access - Private (Admin, Company)
+ *     summary: Cancel a payment
+ *     description: Access --- Private (Admin, Company). Marks the status as 'cancelled' and logs the event instead of removing the record.
  *     tags: [Payments]
  *     security:
  *       - bearerAuth: []
@@ -281,5 +262,14 @@ module.exports = router;
  *         description: The payment id
  *     responses:
  *       200:
- *         description: The payment was deleted
+ *         description: Payment successfully cancelled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/Payment'
  */
