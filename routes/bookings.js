@@ -13,13 +13,13 @@ const router = express.Router({ mergeParams: true });
 
 router
 	.route("/")
-	.get(protect, getBookings)
+	.get(protect, authorize("user", "admin", "company"), getBookings)
 	.post(protect, authorize("user", "admin"), addBooking);
 router
 	.route("/:id")
-	.get(protect, getBooking)
-	.put(protect, updateBooking)
-	.delete(protect, deleteBooking);
+	.get(protect, authorize("user", "admin", "company"), getBooking)
+	.put(protect, authorize("user", "admin", "company"), updateBooking)
+	.delete(protect, authorize("user", "admin", "company"), deleteBooking);
 
 module.exports = router;
 
