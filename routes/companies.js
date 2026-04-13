@@ -23,8 +23,8 @@ router
 router
 	.route("/:id")
 	.get(getCompany)
-	.put(protect, authorize("admin"), updateCompany)
-	.delete(protect, authorize("admin"), deleteCompany);
+	.put(protect, authorize("admin", "company"), updateCompany)
+	.delete(protect, authorize("admin", "company"), deleteCompany);
 
 module.exports = router;
 
@@ -156,41 +156,93 @@ module.exports = router;
  *   post:
  *     security:
  *       - bearerAuth: []
- *     summary: Create a new company
+ *     summary: Create a new company and auto-generate a manager account
  *     tags: [Companies]
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Company'
+ *             type: object
+ *             required:
+ *               - name
+ *               - managerTel
+ *               - password
+ *               - address
+ *               - district
+ *               - province
+ *               - postalcode
+ *               - tel
+ *               - website
+ *               - description
+ *             properties:
+ *               name:
+ *                 type: string
+ *               managerTel:
+ *                 type: string
+ *                 description: Telephone number for the new manager account
+ *               password:
+ *                 type: string
+ *                 description: Password used to register the new managerAccount
+ *               address:
+ *                 type: string
+ *               district:
+ *                 type: string
+ *               province:
+ *                 type: string
+ *               postalcode:
+ *                 type: string
+ *               tel:
+ *                 type: string
+ *                 description: The company's own telephone number
+ *               website:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               logo:
+ *                 type: string
+ *               photoList:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *           example:
+ *             name: "RizzExpress"
+ *             managerTel: "0987654321"
+ *             password: "secret123"
+ *             address: "123 Main St"
+ *             district: "Pathumwan"
+ *             province: "Bangkok"
+ *             postalcode: "10330"
+ *             tel: "0812345678"
+ *             website: "https://www.rizzexpress.com"
+ *             description: "A fast delivery service company."
  *     responses:
  *       201:
- *         description: The company was successfully created
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Company'
+ *          description: The company was successfully created
+ *          content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Company'
  *       400:
- *         description: Validation error
+ *          description: Validation error
  *       500:
- *         description: Some server error
+ *          description: Some server error
  */
 
 /**
  * @swagger
  * /companies/{id}:
  *   get:
- *     summary: Get the company by id
- *     tags: [Companies]
- *     parameters:
+ *      summary: Get the company by id
+ *      tags: [Companies]
+ *      parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
  *         description: The company id
- *     responses:
+ *      responses:
  *       200:
  *         description: The company description by id
  *         content:
@@ -200,28 +252,36 @@ module.exports = router;
  *       404:
  *         description: The company was not found
  *   put:
- *     security:
+ *      security:
  *       - bearerAuth: []
- *     summary: Update the company by id
- *     tags: [Companies]
- *     parameters:
+ *      summary: Update the company by id
+ *      tags: [Companies]
+ *      parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
  *         description: The company id
- *     requestBody:
+ *      requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
+ *             description: Only fields to be updated. managerAccount, password, and managerTel cannot be updated.
  *             properties:
  *               name:
  *                 type: string
- *                 example: NoCortisol Inc.
- *     responses:
+ *               website:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *           example:
+ *             name: NoCortisol Inc.
+ *             website: https://new-website.com
+ *             description: An updated description.
+ *      responses:
  *       200:
  *         description: The company was successfully updated
  *         content:
@@ -235,18 +295,18 @@ module.exports = router;
  *       500:
  *         description: Some error happened
  *   delete:
- *     security:
+ *      security:
  *       - bearerAuth: []
- *     summary: Remove the company by id
- *     tags: [Companies]
- *     parameters:
+ *      summary: Remove the company by id
+ *      tags: [Companies]
+ *      parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
  *         description: The company id
- *     responses:
+ *      responses:
  *       200:
  *         description: The company was deleted
  *       404:

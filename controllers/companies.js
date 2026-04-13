@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const Company = require("../models/Company");
 const Booking = require("../models/Booking");
 const Payment = require("../models/Payment");
+const User = require("../models/User");
 
 //@desc		Get all companies
 //@route	GET /api/v1/companies
@@ -102,29 +103,99 @@ exports.getCompany = async (req, res) => {
 	}
 };
 
-//@desc		Create a company
+//@desc		Create a company and automatically register its manager
 //@route	POST /api/v1/companies
 //@access	Private (Admin only)
 exports.createCompany = async (req, res) => {
-	try {
-		const manager = req.body.user;
+	const session = await mongoose.startSession();
 
-		if (!manager) {
-			return res.status(404).json({
-				success: false,
-				msg: "The provided managerAccount user does not exist",
-			});
-		}
-		if (manager.role !== "company") {
+	try {
+		session.startTransaction();
+
+		const { managerTel, password, ...companyData } = req.body;
+
+		// Validations
+		if (!managerTel) {
+			await session.abortTransaction();
+			session.endSession();
 			return res.status(400).json({
 				success: false,
-				msg: "The assigned managerAccount must have the 'company' role",
+				msg: "Please provide manager's telephone number to generate the company manager account",
 			});
 		}
 
-		const company = await Company.create(req.body);
-		res.status(201).json({ success: true, data: company });
+		if (!password) {
+			await session.abortTransaction();
+			session.endSession();
+
+			return res.status(400).json({
+				success: false,
+				msg: "Please provide a password to generate the company manager account",
+			});
+		}
+
+		if (!companyData.name) {
+			await session.abortTransaction();
+			session.endSession();
+			return res
+				.status(400)
+				.json({ success: false, msg: "Please provide a company name" });
+		}
+
+		// Generate user details
+		const cleanName = companyData.name
+			.replaceAll(/[^a-zA-Z0-9]/g, "")
+			.toLowerCase();
+		const generatedEmail = `${cleanName}@่jobfair.company`;
+
+		// Check if a user with this auto-generated email already exists
+		const existingUser = await User.findOne({ email: generatedEmail }).session(
+			session,
+		);
+		if (existingUser) {
+			await session.abortTransaction();
+			session.endSession();
+			return res.status(400).json({
+				success: false,
+				msg: `A user with email ${generatedEmail} already exists. Please use a different company name.`,
+			});
+		}
+
+		// Create the Company Manager User within the transaction
+		const newManagerArr = await User.create(
+			[
+				{
+					name: companyData.name,
+					email: generatedEmail,
+					tel: managerTel,
+					password: password,
+					role: "company",
+				},
+			],
+			{ session },
+		);
+
+		const newManager = newManagerArr[0];
+		companyData.managerAccount = newManager._id;
+
+		// Remove the "user" field injected by middleware so it doesn't get saved accidentally
+		if (companyData.user) delete companyData.user;
+
+		// Create the new Company within the transaction
+		const companyArr = await Company.create([companyData], { session });
+
+		await session.commitTransaction();
+		session.endSession();
+
+		res.status(201).json({
+			success: true,
+			data: companyArr[0],
+			managerEmail: newManager.email,
+		});
 	} catch (err) {
+		await session.abortTransaction();
+		session.endSession();
+
 		if (err.name === "ValidationError")
 			return res.status(400).json({ success: false, msg: err.message });
 		res.status(500).json({ success: false, msg: "Cannot create Company" });
@@ -134,23 +205,16 @@ exports.createCompany = async (req, res) => {
 
 //@desc		Update single company
 //@route	PUT /api/v1/companies/:id
-//@access	Private (Admin only)
+//@access	Private (Admin & Company only)
 exports.updateCompany = async (req, res) => {
 	try {
-		const manager = req.body.user;
+		// Prevent updating "managerAccount" and injected "user"
+		if (req.body.managerAccount) delete req.body.managerAccount;
+		if (req.body.user) delete req.body.user;
 
-		if (!manager) {
-			return res.status(404).json({
-				success: false,
-				msg: "The provided managerAccount user does not exist",
-			});
-		}
-		if (manager.role !== "company") {
-			return res.status(400).json({
-				success: false,
-				msg: "The assigned managerAccount must have the 'company' role",
-			});
-		}
+		// Ignore manager data if someone tries to send it here
+		if (req.body.managerTel) delete req.body.managerTel;
+		if (req.body.password) delete req.body.password;
 
 		const company = await Company.findByIdAndUpdate(req.params.id, req.body, {
 			new: true,
@@ -177,7 +241,7 @@ exports.updateCompany = async (req, res) => {
 
 //@desc		Delete single company
 //@route	DELETE /api/v1/companies/:id
-//@access	Private (Admin only)
+//@access	Private (Admin & Company only)
 exports.deleteCompany = async (req, res) => {
 	const session = await mongoose.startSession();
 
@@ -201,6 +265,11 @@ exports.deleteCompany = async (req, res) => {
 		await Booking.deleteMany({ company: companyId }, { session });
 		await Payment.deleteMany({ company: companyId }, { session });
 		await Company.deleteOne({ _id: companyId }, { session });
+
+		// Delete the manager account
+		if (company.managerAccount) {
+			await User.deleteOne({ _id: company.managerAccount }, { session });
+		}
 
 		await session.commitTransaction();
 		session.endSession();
