@@ -9,6 +9,7 @@ const {
 const bookingRouter = require("./bookings");
 const paymentRouter = require("./payments");
 const { protect, authorize } = require("../middleware/auth");
+const upload = require("../middleware/upload");
 
 const router = express.Router();
 
@@ -19,11 +20,27 @@ router.use("/:companyId/payments", paymentRouter);
 router
 	.route("/")
 	.get(getCompanies)
-	.post(protect, authorize("admin"), createCompany);
+	.post(
+		protect,
+		authorize("admin"),
+		upload.fields([
+			{ name: "logo", maxCount: 1 },
+			{ name: "photoList", maxCount: 5 },
+		]),
+		createCompany,
+	);
 router
 	.route("/:id")
 	.get(getCompany)
-	.put(protect, authorize("admin", "company"), updateCompany)
+	.put(
+		protect,
+		authorize("admin", "company"),
+		upload.fields([
+			{ name: "logo", maxCount: 1 },
+			{ name: "photoList", maxCount: 5 },
+		]),
+		updateCompany,
+	)
 	.delete(protect, authorize("admin", "company"), deleteCompany);
 
 module.exports = router;
@@ -77,13 +94,17 @@ module.exports = router;
  *           type: string
  *           description: The User ID of the company manager
  *         logo:
- *           type: string
- *           description: Google Drive link for the company logo
+ *           type: object
+ *           properties:
+ *             url: { type: string }
+ *             public_id: { type: string }
  *         photoList:
  *           type: array
  *           items:
- *             type: string
- *           description: Array of Google Drive links for company photos
+ *             type: object
+ *             properties:
+ *               url: { type: string }
+ *               public_id: { type: string }
  *       example:
  *         id: 5f9f1b9b9c9d440000a1b2c3
  *         name: RizzExpress
@@ -95,10 +116,14 @@ module.exports = router;
  *         website: https://www.rizzexpress.com
  *         description: A fast delivery service company.
  *         managerAccount: 60a1b2c3d4e5f6a7b8c9d0e1
- *         logo: https://drive.google.com/file/d/1a2b3c4d5e/view
+ *         logo:
+ *           url: https://res.cloudinary.com/demo/image/upload/v1614567/jobfair/logos/sample.jpg
+ *           public_id: jobfair/logos/sample
  *         photoList:
- *           - "https://drive.google.com/file/d/1a2b3c4d5e_1/view"
- *           - "https://drive.google.com/file/d/1a2b3c4d5e_2/view"
+ *           - url: https://res.cloudinary.com/demo/image/upload/v1614567/jobfair/galleries/pic1.jpg
+ *             public_id: jobfair/galleries/pic1
+ *           - url: https://res.cloudinary.com/demo/image/upload/v1614567/jobfair/galleries/pic2.jpg
+ *             public_id: jobfair/galleries/pic2
  */
 
 /**
@@ -156,12 +181,13 @@ module.exports = router;
  *   post:
  *     security:
  *       - bearerAuth: []
- *     summary: Create a new company and auto-generate a manager account
+ *     summary: Create new company with images
+ *     description: Use multipart/form-data to upload 'logo' (single) and 'photoList' (multiple files).
  *     tags: [Companies]
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
@@ -176,73 +202,51 @@ module.exports = router;
  *               - website
  *               - description
  *             properties:
- *               name:
- *                 type: string
- *               managerTel:
- *                 type: string
- *                 description: Telephone number for the new manager account
- *               password:
- *                 type: string
- *                 description: Password used to register the new managerAccount
- *               address:
- *                 type: string
- *               district:
- *                 type: string
- *               province:
- *                 type: string
- *               postalcode:
- *                 type: string
- *               tel:
- *                 type: string
- *                 description: The company's own telephone number
- *               website:
- *                 type: string
- *               description:
- *                 type: string
+ *               name: { type: string }
+ *               managerTel: { type: string, description: Telephone number for the new manager account }
+ *               password: { type: string, description: Password used to register the new managerAccount }
+ *               address: { type: string }
+ *               district: { type: string }
+ *               province: { type: string }
+ *               postalcode: { type: string }
+ *               tel: { type: string, description: The company's own telephone number }
+ *               website: { type: string }
+ *               description: { type: string }
  *               logo:
  *                 type: string
+ *                 format: binary
  *               photoList:
  *                 type: array
  *                 items:
  *                   type: string
- *           example:
- *             name: "RizzExpress"
- *             managerTel: "0987654321"
- *             password: "secret123"
- *             address: "123 Main St"
- *             district: "Pathumwan"
- *             province: "Bangkok"
- *             postalcode: "10330"
- *             tel: "0812345678"
- *             website: "https://www.rizzexpress.com"
- *             description: "A fast delivery service company."
+ *                   format: binary
  *     responses:
  *       201:
- *          description: The company was successfully created
- *          content:
- *             application/json:
- *               schema:
- *                 $ref: '#/components/schemas/Company'
+ *         description: The company was successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Company'
  *       400:
- *          description: Validation error
+ *         description: Validation error
  *       500:
- *          description: Some server error
+ *         description: Some server error
  */
 
 /**
  * @swagger
  * /companies/{id}:
  *   get:
- *      summary: Get the company by id
- *      tags: [Companies]
- *      parameters:
+ *     summary: Get the company by id
+ *     tags: [Companies]
+ *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
  *         description: The company id
- *      responses:
+ *     responses:
  *       200:
  *         description: The company description by id
  *         content:
@@ -252,36 +256,43 @@ module.exports = router;
  *       404:
  *         description: The company was not found
  *   put:
- *      security:
+ *     security:
  *       - bearerAuth: []
- *      summary: Update the company by id
- *      tags: [Companies]
- *      parameters:
+ *     summary: Update company details and images
+ *     description: Use multipart/form-data to update details or upload new files.
+ *     tags: [Companies]
+ *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
  *         description: The company id
- *      requestBody:
+ *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             description: Only fields to be updated. managerAccount, password, and managerTel cannot be updated.
  *             properties:
- *               name:
+ *               name: { type: string }
+ *               address: { type: string }
+ *               district: { type: string }
+ *               province: { type: string }
+ *               postalcode: { type: string }
+ *               tel: { type: string }
+ *               website: { type: string }
+ *               description: { type: string }
+ *               logo:
  *                 type: string
- *               website:
- *                 type: string
- *               description:
- *                 type: string
- *           example:
- *             name: NoCortisol Inc.
- *             website: https://new-website.com
- *             description: An updated description.
- *      responses:
+ *                 format: binary
+ *               photoList:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *     responses:
  *       200:
  *         description: The company was successfully updated
  *         content:
@@ -295,18 +306,18 @@ module.exports = router;
  *       500:
  *         description: Some error happened
  *   delete:
- *      security:
+ *     security:
  *       - bearerAuth: []
- *      summary: Remove the company by id
- *      tags: [Companies]
- *      parameters:
+ *     summary: Remove the company by id
+ *     tags: [Companies]
+ *     parameters:
  *       - in: path
  *         name: id
  *         schema:
  *           type: string
  *         required: true
  *         description: The company id
- *      responses:
+ *     responses:
  *       200:
  *         description: The company was deleted
  *       404:

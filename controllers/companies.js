@@ -3,6 +3,96 @@ const Company = require("../models/Company");
 const Booking = require("../models/Booking");
 const Payment = require("../models/Payment");
 const User = require("../models/User");
+const cloudinary = require("../config/cloudinary");
+const { Readable } = require("node:stream");
+
+// Helper to handle Cloudinary's Upload
+const uploadToCloudinary = (fileBuffer, folder) => {
+	return new Promise((resolve, reject) => {
+		const cld_upload_stream = cloudinary.uploader.upload_stream(
+			{ folder: `jobfair/${folder}` },
+			(error, result) => {
+				if (result) {
+					resolve({
+						url: result.secure_url,
+						public_id: result.public_id,
+					});
+				} else {
+					reject(new Error(error?.message || "Upload failed"));
+				}
+			},
+		);
+		Readable.from(fileBuffer).pipe(cld_upload_stream);
+	});
+};
+
+// Helper to handle file uploads
+const processFileUploads = async (files) => {
+	const results = {};
+	const newPublicIds = [];
+
+	if (!files) return { results, newPublicIds };
+
+	// Process Logo
+	if (files.logo?.[0]) {
+		const res = await uploadToCloudinary(files.logo[0].buffer, "logos");
+		results.logo = { url: res.url, public_id: res.public_id };
+		newPublicIds.push(res.public_id);
+	}
+
+	// Process Photo List
+	if (files.photoList?.length > 0) {
+		results.photoList = [];
+		for (const file of files.photoList) {
+			const res = await uploadToCloudinary(file.buffer, "galleries");
+			results.photoList.push({ url: res.url, public_id: res.public_id });
+			newPublicIds.push(res.public_id);
+		}
+	}
+
+	return { results, newPublicIds };
+};
+
+// Helper to create manager user
+const createManagerUser = async (
+	companyData,
+	managerTel,
+	password,
+	session,
+) => {
+	const cleanName = companyData.name
+		.replaceAll(/[^a-zA-Z0-9]/g, "")
+		.toLowerCase();
+	const generatedEmail = `${cleanName}@jobfair.company`;
+
+	// Check if a user with this auto-generated email already exists
+	const existingUser = await User.findOne({ email: generatedEmail }).session(
+		session,
+	);
+	if (existingUser) {
+		const error = new Error(
+			`User with email ${generatedEmail} already exists.`,
+		);
+		error.name = "ValidationError";
+		throw error;
+	}
+
+	// Create the Company Manager User within the transaction
+	const newManagerArr = await User.create(
+		[
+			{
+				name: companyData.name,
+				email: generatedEmail,
+				tel: managerTel,
+				password: password,
+				role: "company",
+			},
+		],
+		{ session },
+	);
+
+	return newManagerArr[0];
+};
 
 //@desc		Get all companies
 //@route	GET /api/v1/companies
@@ -108,78 +198,39 @@ exports.getCompany = async (req, res) => {
 //@access	Private (Admin only)
 exports.createCompany = async (req, res) => {
 	const session = await mongoose.startSession();
+	let uploadedPublicIds = [];
 
 	try {
 		session.startTransaction();
 
 		const { managerTel, password, ...companyData } = req.body;
 
-		// Validations
-		if (!managerTel) {
-			await session.abortTransaction();
-			session.endSession();
-			return res.status(400).json({
-				success: false,
-				msg: "Please provide manager's telephone number to generate the company manager account",
-			});
+		// Validations (for critical fields)
+		if (!managerTel || !password || !companyData.name) {
+			const error = new Error(
+				"Missing required fields: name, managerTel, or password",
+			);
+			error.name = "ValidationError";
+			throw error;
 		}
 
-		if (!password) {
-			await session.abortTransaction();
-			session.endSession();
-
-			return res.status(400).json({
-				success: false,
-				msg: "Please provide a password to generate the company manager account",
-			});
-		}
-
-		if (!companyData.name) {
-			await session.abortTransaction();
-			session.endSession();
-			return res
-				.status(400)
-				.json({ success: false, msg: "Please provide a company name" });
-		}
-
-		// Generate user details
-		const cleanName = companyData.name
-			.replaceAll(/[^a-zA-Z0-9]/g, "")
-			.toLowerCase();
-		const generatedEmail = `${cleanName}@่jobfair.company`;
-
-		// Check if a user with this auto-generated email already exists
-		const existingUser = await User.findOne({ email: generatedEmail }).session(
-			session,
-		);
-		if (existingUser) {
-			await session.abortTransaction();
-			session.endSession();
-			return res.status(400).json({
-				success: false,
-				msg: `A user with email ${generatedEmail} already exists. Please use a different company name.`,
-			});
-		}
+		// Handle File Uploads to Cloudinary
+		const { results, newPublicIds } = await processFileUploads(req.files);
+		Object.assign(companyData, results);
+		uploadedPublicIds = newPublicIds;
 
 		// Create the Company Manager User within the transaction
-		const newManagerArr = await User.create(
-			[
-				{
-					name: companyData.name,
-					email: generatedEmail,
-					tel: managerTel,
-					password: password,
-					role: "company",
-				},
-			],
-			{ session },
+		const newManager = await createManagerUser(
+			companyData,
+			managerTel,
+			password,
+			session,
 		);
 
-		const newManager = newManagerArr[0];
 		companyData.managerAccount = newManager._id;
 
 		// Remove the "user" field injected by middleware so it doesn't get saved accidentally
-		if (companyData.user) delete companyData.user;
+		delete companyData.user;
 
 		// Create the new Company within the transaction
 		const companyArr = await Company.create([companyData], { session });
@@ -196,6 +247,13 @@ exports.createCompany = async (req, res) => {
 		await session.abortTransaction();
 		session.endSession();
 
+		if (uploadedPublicIds.length > 0) {
+			const deletePromises = uploadedPublicIds.map((publicId) =>
+				cloudinary.uploader.destroy(publicId),
+			);
+			await Promise.all(deletePromises);
+		}
+
 		if (err.name === "ValidationError")
 			return res.status(400).json({ success: false, msg: err.message });
 		res.status(500).json({ success: false, msg: "Cannot create Company" });
@@ -208,13 +266,15 @@ exports.createCompany = async (req, res) => {
 //@access	Private (Admin & Company only)
 exports.updateCompany = async (req, res) => {
 	try {
-		// Prevent updating "managerAccount" and injected "user"
-		if (req.body.managerAccount) delete req.body.managerAccount;
-		if (req.body.user) delete req.body.user;
+		// Prevent updating sensitive fields
+		delete req.body.managerAccount;
+		delete req.body.user;
+		delete req.body.managerTel;
+		delete req.body.password;
 
-		// Ignore manager data if someone tries to send it here
-		if (req.body.managerTel) delete req.body.managerTel;
-		if (req.body.password) delete req.body.password;
+		// Handle new file uploads if provided
+		const { results } = await processFileUploads(req.files);
+		Object.assign(req.body, results);
 
 		const company = await Company.findByIdAndUpdate(req.params.id, req.body, {
 			new: true,
@@ -259,6 +319,19 @@ exports.deleteCompany = async (req, res) => {
 				success: false,
 				msg: `No company with the id of ${companyId}`,
 			});
+		}
+
+		// Delete logo and photos from Cloudinary
+		const idsToDelete = [];
+		if (company.logo?.public_id) idsToDelete.push(company.logo.public_id);
+		if (company.photoList?.length > 0) {
+			company.photoList.forEach((photo) => idsToDelete.push(photo.public_id));
+		}
+
+		if (idsToDelete.length > 0) {
+			await Promise.all(
+				idsToDelete.map((id) => cloudinary.uploader.destroy(id)),
+			);
 		}
 
 		// Cascade delete bounded to transaction

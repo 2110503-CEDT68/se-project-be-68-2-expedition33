@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const driveRegex = /^https?:\/\/(?:drive|docs)\.google\.com\/.+/; // Regex for Google Drive / Docs
+const cloudinaryRegex = /^https?:\/\/res\.cloudinary\.com\/.+/; // Regex for Cloudinary URLs
 
 const CompanySchema = new mongoose.Schema(
 	{
@@ -49,22 +49,28 @@ const CompanySchema = new mongoose.Schema(
 			required: [true, "Please assign a manager account to this company"],
 		},
 		logo: {
-			type: String,
-			default: null,
-			match: [driveRegex, "Please add a valid Google Drive link for the logo"],
-		},
-		photoList: {
-			type: [String],
-			default: [],
-			validate: {
-				validator: function (list) {
-					if (!list || list.length === 0) return true; // Photos are optional
-
-					return list.every((url) => driveRegex.test(url));
-				},
-				message: "All items in photoList must be valid Google Drive links",
+			url: {
+				type: String,
+				match: [
+					cloudinaryRegex,
+					"Please provide a valid Cloudinary URL for the logo",
+				],
+				default: null,
 			},
+			public_id: { type: String, default: null },
 		},
+		photoList: [
+			{
+				url: {
+					type: String,
+					match: [
+						cloudinaryRegex,
+						"All items in photoList must be valid Cloudinary URLs",
+					],
+				},
+				public_id: { type: String },
+			},
+		],
 	},
 	{
 		toJSON: { virtuals: true },
