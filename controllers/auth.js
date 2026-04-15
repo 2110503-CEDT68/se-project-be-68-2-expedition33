@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Company = require("../models/Company");
 
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
@@ -83,11 +84,30 @@ exports.login = async (req, res) => {
 //@route	GET /api/v1/auth/me
 //@access	Private
 exports.getMe = async (req, res, next) => {
-	const user = await User.findById(req.user.id);
-	res.status(200).json({
-		success: true,
-		data: user,
-	});
+	try {
+		const user = await User.findById(req.user.id).lean();
+
+		if (!user) {
+			return res.status(404).json({ success: false, msg: "User not found" });
+		}
+
+		// If the user is a company manager, fetch their company and attach it
+		if (user.role === "company") {
+			const company = await Company.findOne({ managerAccount: user._id })
+				.select("-managerAccount") // exclude managerAccount (redundant)
+				.lean();
+
+			user.companyData = company || null;
+		}
+
+		res.status(200).json({
+			success: true,
+			data: user,
+		});
+	} catch (err) {
+		res.status(500).json({ success: false, msg: "Server Error" });
+		console.log(err);
+	}
 };
 
 //@desc		Log user out / clear cookie
