@@ -271,6 +271,19 @@ exports.updateCompany = async (req, res) => {
 		delete req.body.user;
 		delete req.body.managerTel;
 		delete req.body.password;
+		delete req.body.logo;
+		delete req.body.photoList;
+
+		// Clean up empty strings & "undefined" sent by FormData
+		Object.keys(req.body).forEach((key) => {
+			if (
+				req.body[key] === "" ||
+				req.body[key] === "undefined" ||
+				req.body[key] === "null"
+			) {
+				delete req.body[key];
+			}
+		});
 
 		// Handle new file uploads if provided
 		const { results } = await processFileUploads(req.files);
