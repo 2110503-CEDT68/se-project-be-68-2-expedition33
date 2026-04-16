@@ -85,19 +85,22 @@ exports.login = async (req, res) => {
 //@access	Private
 exports.getMe = async (req, res, next) => {
 	try {
-		const user = await User.findById(req.user.id).lean();
+		// Fetch the raw Mongoose Document
+		const userDoc = await User.findById(req.user.id);
 
-		if (!user) {
+		if (!userDoc) {
 			return res.status(404).json({ success: false, msg: "User not found" });
 		}
 
-		// If the user is a company manager, fetch their company and attach it
-		if (user.role === "company") {
-			const company = await Company.findOne({ managerAccount: user._id })
-				.select("-managerAccount") // exclude managerAccount (redundant)
-				.lean();
+		// Convert to a plain JavaScript object.
+		const user = userDoc.toObject();
 
-			user.companyData = company || null;
+		if (user.role === "company") {
+			const companyDoc = await Company.findOne({
+				managerAccount: user._id,
+			}).select("-managerAccount");
+
+			user.companyData = companyDoc ? companyDoc.toObject() : null;
 		}
 
 		res.status(200).json({
