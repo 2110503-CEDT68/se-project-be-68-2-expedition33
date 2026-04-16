@@ -199,12 +199,22 @@ exports.getCompany = async (req, res) => {
 exports.createCompany = async (req, res) => {
 	const session = await mongoose.startSession();
 	let uploadedPublicIds = [];
-
 	try {
 		session.startTransaction();
+		
+		// Clean up empty strings & "undefined" sent by FormData
+		Object.keys(req.body).forEach((key) => {			
+			if (
+				req.body[key] === "" ||
+				req.body[key] === "undefined" ||
+				req.body[key] === "null"
+			) {
+				delete req.body[key];
+			}
+		});
 
 		const { managerTel, password, ...companyData } = req.body;
-
+		
 		// Validations (for critical fields)
 		if (!managerTel || !password || !companyData.name) {
 			const error = new Error(
@@ -213,6 +223,7 @@ exports.createCompany = async (req, res) => {
 			error.name = "ValidationError";
 			throw error;
 		}
+
 
 		// Handle File Uploads to Cloudinary
 		const { results, newPublicIds } = await processFileUploads(req.files);
