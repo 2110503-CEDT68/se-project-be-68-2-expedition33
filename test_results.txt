@@ -1,0 +1,4 @@
+
+> be-project-68-nocortisol@1.0.0 test
+> jest --coverage
+

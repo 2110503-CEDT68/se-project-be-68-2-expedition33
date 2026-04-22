@@ -15,7 +15,7 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --coverage",
     "dev": "nodemon server.js"
   },
   "dependencies": {
@@ -37,8 +37,11 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "jest": "^30.3.0",
+    "mongodb-memory-server": "^11.0.1",
     "newman": "^6.2.2",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   },
   "overrides": {
     "qs": "^6.15.1",
