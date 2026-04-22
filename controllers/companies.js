@@ -119,7 +119,7 @@ exports.getCompanies = async (req, res, next) => {
 	);
 
 	// Finding resource
-	query = Company.find(JSON.parse(queryStr)).populate("bookings");
+	query = Company.find(JSON.parse(queryStr)).populate("bookings").populate("payments");
 
 	// Select fields
 	if (req.query.select) {
@@ -175,7 +175,7 @@ exports.getCompanies = async (req, res, next) => {
 //@access	Public
 exports.getCompany = async (req, res) => {
 	try {
-		const company = await Company.findById(req.params.id).populate("bookings");
+		const company = await Company.findById(req.params.id).populate("bookings").populate("payments");
 
 		if (!company) {
 			return res.status(404).json({

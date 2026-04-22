@@ -86,4 +86,11 @@ CompanySchema.virtual("bookings", {
 	justOne: false,
 });
 
+CompanySchema.virtual("payments", {
+	ref: "Payment",
+	localField: "_id",
+	foreignField: "company",
+	justOne: false,
+});
+
 module.exports = mongoose.model("Company", CompanySchema);
