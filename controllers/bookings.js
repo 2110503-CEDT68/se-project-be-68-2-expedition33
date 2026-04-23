@@ -19,7 +19,11 @@ const isOwnerOrAdmin = async (booking, user) => {
 			return false;
 		}
 
-		return booking.company.toString() === company.id;
+		const bookingCompanyId = (
+			booking.company._id || booking.company
+		).toString();
+
+		return bookingCompanyId === company.id;
 	}
 
 	return booking.user.toString() === user.id;
