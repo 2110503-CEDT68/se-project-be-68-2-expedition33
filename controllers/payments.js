@@ -58,6 +58,11 @@ const authorizePayment = async (req, payment) => {
 
 	return false;
 };
+const companyPopulate = {
+	path: "company",
+	select:
+		"name address district province postalcode tel website description logo photoList",
+};
 
 //@desc		Get all payments
 //@route	GET /api/v1/payments
@@ -79,12 +84,6 @@ exports.getPayments = async (req, res) => {
 		(match) => `$${match}`,
 	);
 	const parsedQuery = JSON.parse(queryStr);
-
-	const companyPopulate = {
-		path: "company",
-		select:
-			"name address district province postalcode tel website description logo photoList",
-	};
 
 	// Filter for company payments viewing
 	if (req.user.role === "company") {
@@ -155,7 +154,9 @@ exports.getPayments = async (req, res) => {
 //@access	Private
 exports.getPayment = async (req, res) => {
 	try {
-		const payment = await Payment.findById(req.params.id);
+		const payment = await Payment.findById(req.params.id).populate(
+			companyPopulate,
+		);
 
 		if (!payment) {
 			return res.status(404).json({

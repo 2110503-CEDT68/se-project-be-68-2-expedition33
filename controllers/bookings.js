@@ -28,7 +28,7 @@ const isOwnerOrAdmin = async (booking, user) => {
 
 	return booking.user.toString() === user.id;
 };
-const getBookingQueryOptions = async (req, parsedQuery, companyId) => {
+const modifyQueryByRole = async (parsedQuery, req, companyId) => {
 	if (req.user.role === "admin") {
 		if (companyId) parsedQuery.company = companyId;
 	} else if (req.user.role === "company") {
@@ -39,15 +39,14 @@ const getBookingQueryOptions = async (req, parsedQuery, companyId) => {
 		parsedQuery.user = req.user.id;
 	}
 
-	const companyPopulate = {
-		path: "company",
-		select:
-			"name address district province postalcode tel website description logo photoList",
-	};
-	const userPopulate = { path: "user", select: "name email" };
-
-	return { parsedQuery, companyPopulate, userPopulate };
+	return parsedQuery;
 };
+const companyPopulate = {
+	path: "company",
+	select:
+		"name address district province postalcode tel website description logo photoList",
+};
+const userPopulate = { path: "user", select: "name email" };
 
 //@desc     Get all bookings
 //@route    GET /api/v1/bookings
@@ -69,22 +68,22 @@ exports.getBookings = async (req, res, next) => {
 	const parsedQuery = JSON.parse(queryStr);
 
 	try {
-		const options = await getBookingQueryOptions(
-			req,
+		const modifiedQuery = await modifyQueryByRole(
 			parsedQuery,
-			req.params.companyId,
+			req,
+			req.query.companyId,
 		);
 
-		if (!options) {
+		if (!modifiedQuery) {
 			return res.status(404).json({
 				success: false,
 				msg: "No company associated with this account",
 			});
 		}
 
-		let query = Booking.find(options.parsedQuery)
-			.populate(options.companyPopulate)
-			.populate(options.userPopulate);
+		let query = Booking.find(modifiedQuery)
+			.populate(companyPopulate)
+			.populate(userPopulate);
 
 		// Apply sorting/selecting
 		if (req.query.select) {
@@ -104,7 +103,7 @@ exports.getBookings = async (req, res, next) => {
 		const limit = Number.parseInt(req.query.limit, 10) || 25;
 		const startIndex = (page - 1) * limit;
 		const endIndex = page * limit;
-		const total = await Booking.countDocuments(parsedQuery);
+		const total = await Booking.countDocuments(modifiedQuery);
 
 		query = query.skip(startIndex).limit(limit);
 		const bookings = await query;
@@ -147,11 +146,9 @@ exports.getBookings = async (req, res, next) => {
 //@access   Private
 exports.getBooking = async (req, res, next) => {
 	try {
-		const booking = await Booking.findById(req.params.id).populate({
-			path: "company",
-			select:
-				"name address district province postalcode tel website description",
-		});
+		const booking = await Booking.findById(req.params.id)
+			.populate(companyPopulate)
+			.populate(userPopulate);
 
 		if (!booking) {
 			return res.status(404).json({
