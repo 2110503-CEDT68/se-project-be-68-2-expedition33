@@ -11,6 +11,13 @@ const DEFAULT_DAILY_RATE = 100; // Default daily rate waiting for SUA AND PI MAX
 // add const for cleaner code
 const isValidPaymentDate = (date) => date >= START_DATE && date <= END_DATE;
 const toDateKey = (date) => date.toISOString().split("T")[0]; // "YYYY-MM-DD"
+class AuthError extends Error {
+	constructor(message, statusCode = 403) {
+		super(message);
+		this.statusCode = statusCode;
+		this.name = "AuthError";
+	}
+}
 const statusLog = (oldStatus, newStatus) => {
 	if (oldStatus === null && newStatus == "initiated") {
 		return "PAYMENT_INITIATED";
@@ -35,7 +42,18 @@ const authorizePayment = async (req, payment) => {
 	if (req.user.role === "company") {
 		const company = await Company.findOne({ managerAccount: req.user.id });
 
-		return payment.company.toString() === company?.id;
+		if (!company) {
+			throw new AuthError(
+				"No company profile found for this user account",
+				404,
+			);
+		}
+
+		if (payment.company.toString() !== company.id.toString()) {
+			throw new AuthError("Not authorized to access this payment", 403);
+		}
+
+		return true;
 	}
 
 	return false;
@@ -146,12 +164,22 @@ exports.getPayment = async (req, res) => {
 			});
 		}
 
-		const isAuthorized = await authorizePayment(req, payment);
-		if (!isAuthorized) {
-			return res.status(403).json({
-				success: false,
-				msg: "Not authorized to access this payment",
-			});
+		try {
+			const isAuthorized = await authorizePayment(req, payment);
+			if (!isAuthorized) {
+				return res.status(403).json({
+					success: false,
+					msg: "Not authorized to access this payment",
+				});
+			}
+		} catch (err) {
+			if (err.name === "AuthError") {
+				return res.status(err.statusCode).json({
+					success: false,
+					msg: err.message,
+				});
+			}
+			throw err;
 		}
 
 		res.status(200).json({ success: true, data: payment });
@@ -259,12 +287,22 @@ exports.updatePayment = async (req, res) => {
 			});
 		}
 
-		const isAuthorized = await authorizePayment(req, payment);
-		if (!isAuthorized) {
-			return res.status(403).json({
-				success: false,
-				msg: "Not authorized to update this payment",
-			});
+		try {
+			const isAuthorized = await authorizePayment(req, payment);
+			if (!isAuthorized) {
+				return res.status(403).json({
+					success: false,
+					msg: "Not authorized to update this payment",
+				});
+			}
+		} catch (err) {
+			if (err.name === "AuthError") {
+				return res.status(err.statusCode).json({
+					success: false,
+					msg: err.message,
+				});
+			}
+			throw err;
 		}
 
 		const { status, errorMessage, transactionId } = req.body;
@@ -320,12 +358,22 @@ exports.deletePayment = async (req, res) => {
 			});
 		}
 
-		const isAuthorized = await authorizePayment(req, payment);
-		if (!isAuthorized) {
-			return res.status(403).json({
-				success: false,
-				msg: "Not authorized to cancel this payment",
-			});
+		try {
+			const isAuthorized = await authorizePayment(req, payment);
+			if (!isAuthorized) {
+				return res.status(403).json({
+					success: false,
+					msg: "Not authorized to cancel this payment",
+				});
+			}
+		} catch (err) {
+			if (err.name === "AuthError") {
+				return res.status(err.statusCode).json({
+					success: false,
+					msg: err.message,
+				});
+			}
+			throw err;
 		}
 
 		// Prevent cancelling already captured or cancelled payments
