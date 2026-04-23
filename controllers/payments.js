@@ -62,6 +62,12 @@ exports.getPayments = async (req, res) => {
 	);
 	const parsedQuery = JSON.parse(queryStr);
 
+	const companyPopulate = {
+		path: "company",
+		select:
+			"name address district province postalcode tel website description logo photoList",
+	};
+
 	// Filter for company payments viewing
 	if (req.user.role === "company") {
 		const company = await Company.findOne({ managerAccount: req.user.id });
@@ -76,7 +82,7 @@ exports.getPayments = async (req, res) => {
 	}
 
 	// Base query with company details populated
-	query = Payment.find(parsedQuery).populate("company");
+	query = Payment.find(parsedQuery).populate(companyPopulate);
 
 	// Apply field selection if specified
 	if (req.query.select) {
