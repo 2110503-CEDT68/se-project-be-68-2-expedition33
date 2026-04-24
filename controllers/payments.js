@@ -6,7 +6,7 @@ const START_DATE = new Date("2022-05-10");
 const END_DATE = new Date("2022-05-13");
 
 // price per organized day
-const DEFAULT_DAILY_RATE = 100; // Default daily rate waiting for SUA AND PI MAX
+const DEFAULT_DAILY_RATE = 300;
 
 // add const for cleaner code
 const isValidPaymentDate = (date) => date >= START_DATE && date <= END_DATE;
