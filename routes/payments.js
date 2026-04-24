@@ -27,6 +27,34 @@ module.exports = router;
  * @swagger
  * components:
  *   schemas:
+ *     PaymentCompanySummary:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: The company id
+ *         name:
+ *           type: string
+ *         address:
+ *           type: string
+ *         district:
+ *           type: string
+ *         province:
+ *           type: string
+ *         postalcode:
+ *           type: string
+ *         tel:
+ *           type: string
+ *         website:
+ *           type: string
+ *         description:
+ *           type: string
+ *         logo:
+ *           type: string
+ *         photoList:
+ *           type: array
+ *           items:
+ *             type: string
  *     Payment:
  *       type: object
  *       required:
@@ -38,8 +66,9 @@ module.exports = router;
  *           type: string
  *           description: The auto-generated id of the payment
  *         company:
- *           type: string
- *           description: The Object id of the company
+ *           allOf:
+ *             - $ref: '#/components/schemas/PaymentCompanySummary'
+ *           description: Populated company fields selected from Company
  *         totalPrice:
  *           type: number
  *           description: Total payment amount
@@ -87,7 +116,20 @@ module.exports = router;
  *           format: date-time
  *       example:
  *         id: "64c8d1f2e4b0c2a1d8f9e0a1"
- *         company: "60d0fe4f5311236168a109ca"
+ *         company:
+ *           id: "60d0fe4f5311236168a109ca"
+ *           name: "Acme Event Co"
+ *           address: "123 Main Road"
+ *           district: "Bang Kapi"
+ *           province: "Bangkok"
+ *           postalcode: "10240"
+ *           tel: "021234567"
+ *           website: "https://acme-events.example"
+ *           description: "Event organizer"
+ *           logo: "https://cdn.example.com/logo.png"
+ *           photoList:
+ *             - "https://cdn.example.com/photo-1.jpg"
+ *             - "https://cdn.example.com/photo-2.jpg"
  *         totalPrice: 200
  *         status: "initiated"
  *         dateList:
