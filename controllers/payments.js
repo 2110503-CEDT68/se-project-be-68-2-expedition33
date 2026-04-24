@@ -49,7 +49,11 @@ const authorizePayment = async (req, payment) => {
 			);
 		}
 
-		if (payment.company.toString() !== company.id.toString()) {
+		const paymentCompanyId = (
+			payment.company._id || payment.company
+		).toString();
+
+		if (paymentCompanyId !== company.id.toString()) {
 			throw new AuthError("Not authorized to access this payment", 403);
 		}
 
