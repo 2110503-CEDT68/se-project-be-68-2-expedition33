@@ -258,11 +258,15 @@ exports.addPayment = async (req, res) => {
 			company: companyId,
 			dateList: normalizedDates,
 			totalPrice,
-			status: "initiated",
+			status: "authorized", // Mock-up authorization
 			events: [
 				{
 					eventType: "PAYMENT_INITIATED",
 					payload: { oldStatus: null, newStatus: "initiated" },
+				},
+				{
+					eventType: "PAYMENT_AUTHORIZED",
+					payload: { oldStatus: "initiated", newStatus: "authorized" },
 				},
 			],
 		});
