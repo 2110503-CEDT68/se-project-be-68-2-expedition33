@@ -18,7 +18,7 @@ router
 router
 	.route("/:id")
 	.get(protect, authorize("admin", "company"), getPayment)
-	.put(protect, authorize("admin"), updatePayment)
+	.put(protect, authorize("admin", "company"), updatePayment)
 	.delete(protect, authorize("admin", "company"), deletePayment);
 
 module.exports = router;
