@@ -45,6 +45,10 @@ const companyPopulate = {
 	path: "company",
 	select:
 		"name address district province postalcode tel website description logo photoList",
+	populate: {
+		path: "payments",
+		select: "status dateList",
+	},
 };
 const userPopulate = { path: "user", select: "name email" };
 
