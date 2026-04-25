@@ -413,7 +413,7 @@ exports.deletePayment = async (req, res) => {
 			payload: {
 				oldStatus,
 				newStatus,
-				errorMessage: "Payment cancelled via delete request",
+				errorMessage: "This payment transaction was cancelled by the user.",
 				transactionId: null,
 			},
 		});
