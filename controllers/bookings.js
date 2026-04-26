@@ -26,7 +26,9 @@ const isOwnerOrAdmin = async (booking, user) => {
 		return bookingCompanyId === company.id;
 	}
 
-	return booking.user.toString() === user.id;
+	const bookingUserId = (booking.user._id || booking.user).toString();
+
+	return bookingUserId === user.id;
 };
 const modifyQueryByRole = async (parsedQuery, req, companyId) => {
 	if (req.user.role === "admin") {
