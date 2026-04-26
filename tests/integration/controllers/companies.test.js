@@ -215,6 +215,25 @@ describe("Company Controller Integration", () => {
 			expect(newManager).toBeTruthy();
 		});
 
+		it("should create company without files", async () => {
+			req.body = {
+				name: "No Files Comp",
+				managerTel: "0811111112",
+				password: "password123",
+				address: "Add",
+				district: "Dist",
+				province: "Prov",
+				postalcode: "12345",
+				tel: "0812345678",
+				website: "http://test.com",
+				description: "desc"
+			};
+			req.files = null;
+
+			await companyController.createCompany(req, res);
+			expect(res.status).toHaveBeenCalledWith(201);
+		});
+
 		it("should handle missing required fields", async () => {
 			req.body = { name: "No Manager" };
 			await companyController.createCompany(req, res);
@@ -271,7 +290,7 @@ describe("Company Controller Integration", () => {
             req.files = { logo: [{ buffer: Buffer.from("fail") }] };
             
             cloudinary.uploader.upload_stream.mockImplementationOnce((options, cb) => {
-                cb({ message: "Upload failed" }, null);
+                cb({ message: "" }, null); // Trigger default "Upload failed" message
                 return { pipe: jest.fn() };
             });
 

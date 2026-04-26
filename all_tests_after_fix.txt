@@ -1,0 +1,333 @@
+
+> be-project-68-nocortisol@1.0.0 test
+> jest --coverage
+
+PASS tests/unit/middleware/upload.test.js (21.165 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+PASS tests/unit/middleware/auth.test.js (22.583 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+(node:62736) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:62736) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+PASS tests/system/api-security.test.js (25.363 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ◈ secrets for agents [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ enable debugging { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+(node:62736) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+PASS tests/integration/controllers/auth.test.js (25.688 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ override existing { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+PASS tests/system/user-flow.test.js (25.674 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      ENUM VALUES IN MEMORY: [ 'user', 'admin', 'company' ]
+
+      at Object.log (tests/system/user-flow.test.js:51:17)
+
+    console.log
+      Users in DB: 2
+
+      at Object.log (tests/system/user-flow.test.js:71:17)
+
+    console.log
+      { id: '69ee3356a4c8d7b3165b6854', iat: 1777218396, exp: 1779810396 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee335ca4c8d7b3165b6855', iat: 1777218396, exp: 1779810396 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee335ca4c8d7b3165b6855', iat: 1777218396, exp: 1779810396 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee3356a4c8d7b3165b6854', iat: 1777218396, exp: 1779810396 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee3356a4c8d7b3165b6854', iat: 1777218396, exp: 1779810396 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee335ca4c8d7b3165b6856', iat: 1777218397, exp: 1779810397 }
+
+      at log (middleware/auth.js:23:11)
+
+(node:62736) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+PASS tests/integration/controllers/companies.test.js (30.729 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ enable debugging { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+PASS tests/integration/controllers/payments.test.js (38.429 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌁ auth for agents [www.vestauth.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+(node:62734) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:62734) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+FAIL tests/integration/controllers/bookings.test.js (47.211 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      Error: DB Fail
+          at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:181:57)
+          at Promise.finally.completed (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+          at _callCircusTest (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at _runTest (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+          at /Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+          at _runTestsForDescribeBlock (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+          at _runTestsForDescribeBlock (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+          at _runTestsForDescribeBlock (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+          at run (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+          at runAndTransformResultsToJestFormat (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+          at jestAdapter (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/runner.js:101:19)
+          at runTestInternal (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-runner/build/testWorker.js:275:16)
+          at runTest (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-runner/build/testWorker.js:343:7)
+          at Object.worker (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-runner/build/testWorker.js:497:12)
+
+      at Object.log [as getBookings] (controllers/bookings.js:145:11)
+
+    console.log
+      CastError: Cast to ObjectId failed for value "invalid" (type string) at path "_id" for model "Booking"
+          at SchemaObjectId.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schema/objectId.js:252:11)
+          at SchemaObjectId.SchemaType.applySetters (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1320:12)
+          at SchemaObjectId.SchemaType.castForQuery (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1746:17)
+          at cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast.js:386:32)
+          at model.Query.Query.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:5127:12)
+          at model.Query.Query._castConditions (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2376:10)
+          at model.Query._findOne (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2716:8)
+          at model.Query.exec (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:4726:80)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.exports.getBooking (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/controllers/bookings.js:154:19)
+          at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:227:4) {
+        stringValue: '"invalid"',
+        messageFormat: undefined,
+        kind: 'ObjectId',
+        value: 'invalid',
+        path: '_id',
+        reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+            at new ObjectId (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/bson/src/objectid.ts:113:15)
+            at castObjectId (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast/objectid.js:25:12)
+            at SchemaObjectId.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schema/objectId.js:250:12)
+            at SchemaObjectId.SchemaType.applySetters (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1320:12)
+            at SchemaObjectId.SchemaType.castForQuery (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1746:17)
+            at cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast.js:386:32)
+            at model.Query.Query.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:5127:12)
+            at model.Query.Query._castConditions (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2376:10)
+            at model.Query._findOne (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2716:8)
+            at model.Query.exec (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:4726:80)
+            at processTicksAndRejections (node:internal/process/task_queues:105:5)
+            at Object.exports.getBooking (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/controllers/bookings.js:154:19)
+            at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:227:4),
+        valueType: 'string'
+      }
+
+      at Object.log [as getBooking] (controllers/bookings.js:177:11)
+
+    console.log
+      CastError: Cast to ObjectId failed for value "invalid" (type string) at path "_id" for model "Company"
+          at SchemaObjectId.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schema/objectId.js:252:11)
+          at SchemaObjectId.SchemaType.applySetters (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1320:12)
+          at SchemaObjectId.SchemaType.castForQuery (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1746:17)
+          at cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast.js:386:32)
+          at model.Query.Query.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:5127:12)
+          at model.Query.Query._castConditions (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2376:10)
+          at model.Query._findOne (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2716:8)
+          at model.Query.exec (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:4726:80)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.exports.addBooking (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/controllers/bookings.js:186:19)
+          at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:356:4) {
+        stringValue: '"invalid"',
+        messageFormat: undefined,
+        kind: 'ObjectId',
+        value: 'invalid',
+        path: '_id',
+        reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+            at new ObjectId (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/bson/src/objectid.ts:113:15)
+            at castObjectId (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast/objectid.js:25:12)
+            at SchemaObjectId.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schema/objectId.js:250:12)
+            at SchemaObjectId.SchemaType.applySetters (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1320:12)
+            at SchemaObjectId.SchemaType.castForQuery (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1746:17)
+            at cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast.js:386:32)
+            at model.Query.Query.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:5127:12)
+            at model.Query.Query._castConditions (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2376:10)
+            at model.Query._findOne (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2716:8)
+            at model.Query.exec (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:4726:80)
+            at processTicksAndRejections (node:internal/process/task_queues:105:5)
+            at Object.exports.addBooking (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/controllers/bookings.js:186:19)
+            at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:356:4),
+        valueType: 'string'
+      }
+
+      at Object.log [as addBooking] (controllers/bookings.js:224:11)
+
+    console.log
+      Error: DB Fail
+          at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:445:60)
+          at Promise.finally.completed (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1557:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1497:10)
+          at _callCircusTest (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1007:40)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at _runTest (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:947:3)
+          at /Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:849:7
+          at _runTestsForDescribeBlock (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:862:11)
+          at _runTestsForDescribeBlock (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+          at _runTestsForDescribeBlock (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:857:11)
+          at run (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:761:3)
+          at runAndTransformResultsToJestFormat (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/jestAdapterInit.js:1918:21)
+          at jestAdapter (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-circus/build/runner.js:101:19)
+          at runTestInternal (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-runner/build/testWorker.js:275:16)
+          at runTest (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-runner/build/testWorker.js:343:7)
+          at Object.worker (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/jest-runner/build/testWorker.js:497:12)
+
+      at Object.log [as updateBooking] (controllers/bookings.js:275:11)
+
+    console.log
+      CastError: Cast to ObjectId failed for value "invalid" (type string) at path "_id" for model "Booking"
+          at SchemaObjectId.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schema/objectId.js:252:11)
+          at SchemaObjectId.SchemaType.applySetters (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1320:12)
+          at SchemaObjectId.SchemaType.castForQuery (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1746:17)
+          at cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast.js:386:32)
+          at model.Query.Query.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:5127:12)
+          at model.Query.Query._castConditions (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2376:10)
+          at model.Query._findOne (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2716:8)
+          at model.Query.exec (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:4726:80)
+          at processTicksAndRejections (node:internal/process/task_queues:105:5)
+          at Object.exports.deleteBooking (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/controllers/bookings.js:284:19)
+          at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:494:4) {
+        stringValue: '"invalid"',
+        messageFormat: undefined,
+        kind: 'ObjectId',
+        value: 'invalid',
+        path: '_id',
+        reason: BSONError: input must be a 24 character hex string, 12 byte Uint8Array, or an integer
+            at new ObjectId (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/bson/src/objectid.ts:113:15)
+            at castObjectId (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast/objectid.js:25:12)
+            at SchemaObjectId.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schema/objectId.js:250:12)
+            at SchemaObjectId.SchemaType.applySetters (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1320:12)
+            at SchemaObjectId.SchemaType.castForQuery (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/schemaType.js:1746:17)
+            at cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/cast.js:386:32)
+            at model.Query.Query.cast (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:5127:12)
+            at model.Query.Query._castConditions (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2376:10)
+            at model.Query._findOne (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:2716:8)
+            at model.Query.exec (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/node_modules/mongoose/lib/query.js:4726:80)
+            at processTicksAndRejections (node:internal/process/task_queues:105:5)
+            at Object.exports.deleteBooking (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/controllers/bookings.js:284:19)
+            at Object.<anonymous> (/Users/pasitpromjan/Downloads/expedition-33/se-project-be-68-2-expedition33/tests/integration/controllers/bookings.test.js:494:4),
+        valueType: 'string'
+      }
+
+      at Object.log [as deleteBooking] (controllers/bookings.js:306:11)
+
+  ● Booking Controller Integration › getBookings › should handle CastError
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 400
+    Received: 200
+
+    Number of calls: 1
+
+      173 | 			await bookingController.getBookings(req, res);
+      174 |
+    > 175 | 			expect(res.status).toHaveBeenCalledWith(400);
+          | 			                   ^
+      176 | 		});
+      177 |
+      178 | 		it("should return 500 on server error", async () => {
+
+      at Object.toHaveBeenCalledWith (tests/integration/controllers/bookings.test.js:175:23)
+
+---------------------------------------------|---------|----------|---------|---------|---------------------------
+File                                         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s         
+---------------------------------------------|---------|----------|---------|---------|---------------------------
+All files                                    |   96.38 |    90.57 |   94.64 |   96.75 |                           
+ se-project-be-68-2-expedition33             |   86.53 |    58.33 |   33.33 |   88.23 |                           
+  server.js                                  |   86.53 |    58.33 |   33.33 |   88.23 | 18,133,145-151            
+ se-project-be-68-2-expedition33/config      |   66.66 |      100 |       0 |   66.66 |                           
+  cloudinary.js                              |     100 |      100 |     100 |     100 |                           
+  db.js                                      |      50 |      100 |       0 |      50 | 4-7                       
+ se-project-be-68-2-expedition33/controllers |   97.31 |    91.86 |     100 |   97.62 |                           
+  auth.js                                    |     100 |      100 |     100 |     100 |                           
+  bookings.js                                |   98.46 |    94.11 |     100 |   99.19 | 141                       
+  companies.js                               |   99.41 |    90.76 |     100 |     100 | 21-34,350-367             
+  payments.js                                |   93.75 |    89.52 |     100 |   93.52 | 52-60,187,304-310,375-381 
+ se-project-be-68-2-expedition33/middleware  |     100 |      100 |     100 |     100 |                           
+  auth.js                                    |     100 |      100 |     100 |     100 |                           
+  upload.js                                  |     100 |      100 |     100 |     100 |                           
+ se-project-be-68-2-expedition33/models      |     100 |      100 |     100 |     100 |                           
+  Booking.js                                 |     100 |      100 |     100 |     100 |                           
+  Company.js                                 |     100 |      100 |     100 |     100 |                           
+  Payment.js                                 |     100 |      100 |     100 |     100 |                           
+  User.js                                    |     100 |      100 |     100 |     100 |                           
+ se-project-be-68-2-expedition33/routes      |     100 |      100 |     100 |     100 |                           
+  auth.js                                    |     100 |      100 |     100 |     100 |                           
+  bookings.js                                |     100 |      100 |     100 |     100 |                           
+  companies.js                               |     100 |      100 |     100 |     100 |                           
+  payments.js                                |     100 |      100 |     100 |     100 |                           
+---------------------------------------------|---------|----------|---------|---------|---------------------------
+Test Suites: 1 failed, 7 passed, 8 total
+Tests:       1 failed, 115 passed, 116 total
+Snapshots:   0 total
+Time:        47.817 s
+Ran all test suites.

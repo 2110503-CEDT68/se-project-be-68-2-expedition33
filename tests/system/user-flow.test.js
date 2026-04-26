@@ -127,17 +127,17 @@ describe("System E2E - User Flow", () => {
 
 		expect(res.statusCode).toBe(201);
         paymentId = res.body.data._id;
-		expect(res.body.data.status).toBe("initiated");
+		expect(res.body.data.status).toBe("authorized");
 	});
 
-    it("6. Admin authorizes the Payment", async () => {
+    it("6. Admin captures the Payment", async () => {
 		const res = await request(app)
 			.put(`/api/v1/payments/${paymentId}`)
 			.set("Authorization", `Bearer ${adminToken}`)
-			.send({ status: "authorized" });
+			.send({ status: "captured" });
 
 		expect(res.statusCode).toBe(200);
-		expect(res.body.data.status).toBe("authorized");
+		expect(res.body.data.status).toBe("captured");
 	});
 
     it("7. Company manager queries the payments", async () => {

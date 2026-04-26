@@ -61,7 +61,7 @@ describe("Payment Controller Integration", () => {
 			company: company._id,
 			dateList: [new Date("2022-05-11")],
 			totalPrice: 100,
-			status: "initiated",
+			status: "authorized",
 			events: [],
 		});
 	});
@@ -190,6 +190,39 @@ describe("Payment Controller Integration", () => {
 			await paymentController.getPayment(req, res);
 			expect(res.status).toHaveBeenCalledWith(500);
 		});
+
+		it("should return 404 if company profile not found for company user", async () => {
+			const anotherMngr = await User.create({
+				name: "am",
+				email: "am3@dev.com",
+				password: "password123",
+				tel: "0833333333",
+				role: "company",
+			});
+			req.user = { id: anotherMngr._id.toString(), role: "company" };
+			req.params.id = payment._id;
+			await paymentController.getPayment(req, res);
+
+			expect(res.status).toHaveBeenCalledWith(404);
+			expect(res.json).toHaveBeenCalledWith(
+				expect.objectContaining({ msg: "No company profile found for this user account" }),
+			);
+		});
+
+		it("should handle unexpected errors in authorizePayment", async () => {
+			req.user = { id: admin._id.toString(), role: "admin" };
+			req.params.id = payment._id;
+			
+			// Mock Company.findOne to throw an error
+			const origFindOne = Company.findOne;
+			Company.findOne = jest.fn().mockRejectedValue(new Error("Unexpected"));
+
+			req.user.role = "company";
+			await paymentController.getPayment(req, res);
+			expect(res.status).toHaveBeenCalledWith(500);
+
+			Company.findOne = origFindOne;
+		});
 	});
 
 	describe("addPayment", () => {
@@ -201,6 +234,9 @@ describe("Payment Controller Integration", () => {
 			await paymentController.addPayment(req, res);
 
 			expect(res.status).toHaveBeenCalledWith(201);
+			expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+				data: expect.objectContaining({ status: "authorized" })
+			}));
 		});
 
 		it("should return 404 if company not found", async () => {
@@ -278,21 +314,21 @@ describe("Payment Controller Integration", () => {
 	describe("updatePayment", () => {
 		it("should update payment status and log event via status transition logic", async () => {
 			req.user = { id: admin._id.toString(), role: "admin" };
-			req.params.id = payment._id; // initiated
-			req.body = { status: "authorized" };
+			req.params.id = payment._id; // authorized
+			req.body = { status: "captured" };
 
 			await paymentController.updatePayment(req, res);
 
 			expect(res.status).toHaveBeenCalledWith(200);
 			const updated = await Payment.findById(payment._id);
-			expect(updated.status).toBe("authorized");
-			expect(updated.events.some((e) => e.eventType === "PAYMENT_AUTHORIZED")).toBeTruthy();
+			expect(updated.status).toBe("captured");
+			expect(updated.events.some((e) => e.eventType === "PAYMENT_SUCCESS")).toBeTruthy();
 		});
 
         it("should skip event logging if status is the same", async () => {
             req.user = { id: admin._id.toString(), role: "admin" };
 			req.params.id = payment._id;
-			req.body = { status: "initiated" };
+			req.body = { status: "authorized" };
 
 			await paymentController.updatePayment(req, res);
 
@@ -305,7 +341,7 @@ describe("Payment Controller Integration", () => {
 		it("should emit HACKER ALERT (400) for invalid status transition", async () => {
 			req.user = { id: admin._id.toString(), role: "admin" };
 			req.params.id = payment._id;
-			req.body = { status: "captured" };
+			req.body = { status: "initiated" };
 
 			await paymentController.updatePayment(req, res);
 
@@ -456,6 +492,18 @@ describe("Payment Controller Integration", () => {
 			req.params.id = "invalid";
 			await paymentController.deletePayment(req, res);
 			expect(res.status).toHaveBeenCalledWith(500);
+		});
+
+		it("should handle unexpected errors in authorizePayment for delete", async () => {
+			const origFindOne = Company.findOne;
+			Company.findOne = jest.fn().mockRejectedValue(new Error("Unexpected"));
+
+			req.user = { id: companyManager._id.toString(), role: "company" };
+			req.params.id = payment._id;
+			await paymentController.deletePayment(req, res);
+			expect(res.status).toHaveBeenCalledWith(500);
+
+			Company.findOne = origFindOne;
 		});
 	});
 });

@@ -3,6 +3,7 @@ const Booking = require("../../../models/Booking");
 const Company = require("../../../models/Company");
 const User = require("../../../models/User");
 const mongoose = require("mongoose");
+require("../../../models/Payment");
 
 
 beforeAll(() => {
@@ -167,7 +168,7 @@ describe("Booking Controller Integration", () => {
 
 		it("should handle CastError", async () => {
 			req.user = { id: admin._id.toString(), role: "admin" };
-			req.params.companyId = "invalidId";
+			req.query.companyId = "invalidId";
 			await bookingController.getBookings(req, res);
 
 			expect(res.status).toHaveBeenCalledWith(400);
@@ -262,13 +263,30 @@ describe("Booking Controller Integration", () => {
 			req.user = { id: admin._id.toString(), role: "admin" };
 			req.params.id = bookingNoUser._id;
 
-			// Wait, isOwnerOrAdmin is called inside getBooking.
-			await bookingController.getBooking(req, res);
-			// Wait, if admin, it returns true BEFORE checking booking.user.
-			// So to hit line 11, we need a non-admin role.
 			req.user = { id: user._id.toString(), role: "user" };
 			await bookingController.getBooking(req, res);
 			expect(res.status).toHaveBeenCalledWith(403);
+		});
+
+		it("should handle non-populated company/user in isOwnerOrAdmin", async () => {
+			const orig = Booking.findById;
+			Booking.findById = jest.fn().mockImplementation(() => ({
+				populate: jest.fn().mockReturnThis(),
+				then: jest.fn().mockImplementation((success) => {
+					return Promise.resolve({
+						_id: booking._id,
+						user: user._id, // String/ObjectId for toString() to work
+						company: company._id, // String/ObjectId for toString() to work
+					}).then(success);
+				})
+			}));
+
+			req.user = { id: user._id.toString(), role: "user" };
+			req.params.id = booking._id;
+			await bookingController.getBooking(req, res);
+			expect(res.status).toHaveBeenCalledWith(200);
+
+			Booking.findById = orig;
 		});
 	});
 

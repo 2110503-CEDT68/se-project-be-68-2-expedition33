@@ -1,0 +1,214 @@
+
+> be-project-68-nocortisol@1.0.0 test
+> jest --coverage
+
+PASS tests/unit/middleware/upload.test.js (27.441 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+PASS tests/unit/middleware/auth.test.js (28.309 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌁ auth for agents [www.vestauth.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+(node:64268) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS tests/system/api-security.test.js (31.27 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ suppress logs { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ◈ secrets for agents [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+(node:64268) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(node:64268) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+PASS tests/integration/controllers/auth.test.js (32.614 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ suppress logs { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+FAIL tests/system/user-flow.test.js (32.66 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ suppress logs { quiet: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ enable debugging { debug: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+    console.log
+      ENUM VALUES IN MEMORY: [ 'user', 'admin', 'company' ]
+
+      at Object.log (tests/system/user-flow.test.js:51:17)
+
+    console.log
+      Users in DB: 2
+
+      at Object.log (tests/system/user-flow.test.js:71:17)
+
+    console.log
+      { id: '69ee370b760ed4e8d4498fc0', iat: 1777219345, exp: 1779811345 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee3711760ed4e8d4498fc1', iat: 1777219346, exp: 1779811346 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee3711760ed4e8d4498fc1', iat: 1777219346, exp: 1779811346 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee370b760ed4e8d4498fc0', iat: 1777219345, exp: 1779811345 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee370b760ed4e8d4498fc0', iat: 1777219345, exp: 1779811345 }
+
+      at log (middleware/auth.js:23:11)
+
+    console.log
+      { id: '69ee3712760ed4e8d4498fc2', iat: 1777219347, exp: 1779811347 }
+
+      at log (middleware/auth.js:23:11)
+
+  ● System E2E - User Flow › 4. User retrieves their Booking
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 403
+
+      113 | 			.set("Authorization", `Bearer ${userToken}`);
+      114 |
+    > 115 | 		expect(res.statusCode).toBe(200);
+          | 		                       ^
+      116 | 		expect(res.body.data).toHaveProperty("company");
+      117 |         expect(res.body.data.company._id).toBe(companyId);
+      118 | 	});
+
+      at Object.toBe (tests/system/user-flow.test.js:115:26)
+
+(node:64268) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+PASS tests/integration/controllers/companies.test.js (36.891 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ override existing { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+FAIL tests/integration/controllers/payments.test.js (45.77 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ⌘ override existing { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+  ● Payment Controller Integration › updatePayment › should emit HACKER ALERT (400) for invalid status transition
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 400
+    Received: 200
+
+    Number of calls: 1
+
+      346 | 			await paymentController.updatePayment(req, res);
+      347 |
+    > 348 | 			expect(res.status).toHaveBeenCalledWith(400);
+          | 			                   ^
+      349 | 			expect(res.json).toHaveBeenCalledWith(
+      350 | 				expect.objectContaining({ msg: expect.stringContaining("HACKER ALERT") }),
+      351 | 			);
+
+      at Object.toHaveBeenCalledWith (tests/integration/controllers/payments.test.js:348:23)
+
+(node:64267) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:64267) [MONGOOSE] Warning: mongoose: the `new` option for `findOneAndUpdate()` and `findOneAndReplace()` is deprecated. Use `returnDocument: 'after'` instead.
+FAIL tests/integration/controllers/bookings.test.js (53.26 s)
+  ● Console
+
+    console.log
+      ◇ injected env (0) from config/config.env // tip: ◈ encrypted .env [www.dotenvx.com]
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+  ● Booking Controller Integration › getBooking › should retrieve a booking if authorized owner
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: 200
+    Received: 403
+
+    Number of calls: 1
+
+      193 | 			await bookingController.getBooking(req, res);
+      194 |
+    > 195 | 			expect(res.status).toHaveBeenCalledWith(200);
+          | 			                   ^
+      196 | 			expect(res.json).toHaveBeenCalledWith(
+      197 | 				expect.objectContaining({ success: true }),
+      198 | 			);
+
+      at Object.toHaveBeenCalledWith (tests/integration/controllers/bookings.test.js:195:23)
+
+---------------------------------------------|---------|----------|---------|---------|--------------------------
+File                                         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s        
+---------------------------------------------|---------|----------|---------|---------|--------------------------
+All files                                    |   96.98 |    91.97 |   94.64 |   97.05 |                          
+ se-project-be-68-2-expedition33             |   86.53 |    58.33 |   33.33 |   88.23 |                          
+  server.js                                  |   86.53 |    58.33 |   33.33 |   88.23 | 18,133,145-151           
+ se-project-be-68-2-expedition33/config      |   66.66 |      100 |       0 |   66.66 |                          
+  cloudinary.js                              |     100 |      100 |     100 |     100 |                          
+  db.js                                      |      50 |      100 |       0 |      50 | 4-7                      
+ se-project-be-68-2-expedition33/controllers |   98.07 |    93.35 |     100 |   98.01 |                          
+  auth.js                                    |     100 |      100 |     100 |     100 |                          
+  bookings.js                                |     100 |    98.48 |     100 |     100 | 23                       
+  companies.js                               |     100 |    93.84 |     100 |     100 | 350-367                  
+  payments.js                                |   94.31 |    88.57 |     100 |   94.11 | 36,52-60,308-314,324,380 
+ se-project-be-68-2-expedition33/middleware  |     100 |      100 |     100 |     100 |                          
+  auth.js                                    |     100 |      100 |     100 |     100 |                          
+  upload.js                                  |     100 |      100 |     100 |     100 |                          
+ se-project-be-68-2-expedition33/models      |     100 |      100 |     100 |     100 |                          
+  Booking.js                                 |     100 |      100 |     100 |     100 |                          
+  Company.js                                 |     100 |      100 |     100 |     100 |                          
+  Payment.js                                 |     100 |      100 |     100 |     100 |                          
+  User.js                                    |     100 |      100 |     100 |     100 |                          
+ se-project-be-68-2-expedition33/routes      |     100 |      100 |     100 |     100 |                          
+  auth.js                                    |     100 |      100 |     100 |     100 |                          
+  bookings.js                                |     100 |      100 |     100 |     100 |                          
+  companies.js                               |     100 |      100 |     100 |     100 |                          
+  payments.js                                |     100 |      100 |     100 |     100 |                          
+---------------------------------------------|---------|----------|---------|---------|--------------------------
+Test Suites: 3 failed, 5 passed, 8 total
+Tests:       3 failed, 118 passed, 121 total
+Snapshots:   0 total
+Time:        54.081 s
+Ran all test suites.
