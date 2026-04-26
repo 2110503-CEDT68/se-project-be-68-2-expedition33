@@ -1,14 +1,20 @@
 # ignore all node_modules
-node_modules/*
+/node_modules
 
 # ignore config file
 config/config.env
-
-# ignore test case file
-test_case*.json
 
 # ignore UML folder
 UML/
 
 # macOS
 .DS_Store
+
+# testing
+/coverage
+all_tests_after_fix.txt
+booking_failures.txt
+booking_test_error.txt
+final_verification.txt
+test_output.txt
+test_results.txt
