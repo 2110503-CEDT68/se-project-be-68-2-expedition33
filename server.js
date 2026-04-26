@@ -114,11 +114,13 @@ const swaggerOptions = {
 	],
 };
 
-app.use(
-	"/api-docs",
-	swaggerUI.serve,
-	swaggerUI.setup(swaggerDocs, swaggerOptions),
-);
+if (process.env.NODE_ENV !== "production") {
+	app.use(
+		"/api-docs",
+		swaggerUI.serve,
+		swaggerUI.setup(swaggerDocs, swaggerOptions),
+	);
+}
 
 // Mount rounters
 app.use("/api/v1/companies", companies);
