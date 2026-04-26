@@ -76,7 +76,7 @@ app.use(xss());
 
 // Rate limiting
 const limiter = rateLimit({
-	windowMs: 1 * 60 * 1000, // 1 min
+	windowMs: 5 * 60 * 1000, // 5 min
 	max: 100,
 });
 app.use(limiter);
@@ -130,7 +130,12 @@ let server;
 if (process.env.NODE_ENV !== "test") {
 	server = app.listen(
 		PORT,
-		console.log("Server running in", process.env.NODE_ENV, "mode on port", PORT),
+		console.log(
+			"Server running in",
+			process.env.NODE_ENV,
+			"mode on port",
+			PORT,
+		),
 	);
 }
 

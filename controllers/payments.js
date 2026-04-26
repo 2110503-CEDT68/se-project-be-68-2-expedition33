@@ -6,7 +6,7 @@ const START_DATE = new Date("2022-05-10");
 const END_DATE = new Date("2022-05-13");
 
 // price per organized day
-const DEFAULT_DAILY_RATE = 100; // Default daily rate waiting for SUA AND PI MAX
+const DEFAULT_DAILY_RATE = 300;
 
 // add const for cleaner code
 const isValidPaymentDate = (date) => date >= START_DATE && date <= END_DATE;
@@ -49,7 +49,11 @@ const authorizePayment = async (req, payment) => {
 			);
 		}
 
-		if (payment.company.toString() !== company.id.toString()) {
+		const paymentCompanyId = (
+			payment.company._id || payment.company
+		).toString();
+
+		if (paymentCompanyId !== company.id.toString()) {
 			throw new AuthError("Not authorized to access this payment", 403);
 		}
 
@@ -57,6 +61,11 @@ const authorizePayment = async (req, payment) => {
 	}
 
 	return false;
+};
+const companyPopulate = {
+	path: "company",
+	select:
+		"name address district province postalcode tel website description logo photoList",
 };
 
 //@desc		Get all payments
@@ -79,12 +88,6 @@ exports.getPayments = async (req, res) => {
 		(match) => `$${match}`,
 	);
 	const parsedQuery = JSON.parse(queryStr);
-
-	const companyPopulate = {
-		path: "company",
-		select:
-			"name address district province postalcode tel website description logo photoList",
-	};
 
 	// Filter for company payments viewing
 	if (req.user.role === "company") {
@@ -155,7 +158,9 @@ exports.getPayments = async (req, res) => {
 //@access	Private
 exports.getPayment = async (req, res) => {
 	try {
-		const payment = await Payment.findById(req.params.id);
+		const payment = await Payment.findById(req.params.id).populate(
+			companyPopulate,
+		);
 
 		if (!payment) {
 			return res.status(404).json({
@@ -253,11 +258,15 @@ exports.addPayment = async (req, res) => {
 			company: companyId,
 			dateList: normalizedDates,
 			totalPrice,
-			status: "initiated",
+			status: "authorized", // Mock-up authorization
 			events: [
 				{
 					eventType: "PAYMENT_INITIATED",
 					payload: { oldStatus: null, newStatus: "initiated" },
+				},
+				{
+					eventType: "PAYMENT_AUTHORIZED",
+					payload: { oldStatus: "initiated", newStatus: "authorized" },
 				},
 			],
 		});
@@ -404,7 +413,7 @@ exports.deletePayment = async (req, res) => {
 			payload: {
 				oldStatus,
 				newStatus,
-				errorMessage: "Payment cancelled via delete request",
+				errorMessage: "This payment transaction was cancelled by the user.",
 				transactionId: null,
 			},
 		});
