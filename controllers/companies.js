@@ -118,10 +118,21 @@ exports.getCompanies = async (req, res, next) => {
 		(match) => `$${match}`,
 	);
 
-	// Finding resource
-	query = Company.find(JSON.parse(queryStr)).populate("bookings").populate("payments");
+		// Finding resource
+		query = Company.find(JSON.parse(queryStr)).populate("bookings").populate("payments");
 
-	// Select fields
+		// Select/Populate managerAccount based on role
+		if (req.user?.role === "admin") {
+			query = query.populate({
+				path: "managerAccount",
+				select: "email",
+			});
+		} else {
+			// Normal users and guests don't see managerAccount in the list
+			query = query.select("-managerAccount");
+		}
+
+		// Select fields
 	if (req.query.select) {
 		const fields = req.query.select.split(",").join(" ");
 		query = query.select(fields);
@@ -177,12 +188,26 @@ exports.getCompany = async (req, res) => {
 	try {
 		let query = Company.findById(req.params.id).populate("bookings").populate("payments");
 		
-		// If admin is requesting, populate manager account info (only email)
-		if (req.user?.role === "admin") {
+		const companyTemp = await Company.findById(req.params.id);
+		if (!companyTemp) {
+			return res.status(404).json({
+				success: false,
+				msg: `No company with the id of ${req.params.id}`,
+			});
+		}
+
+		// Check visibility permissions
+		const isAdmin = req.user?.role === "admin";
+		const isManagerOfThisCompany = req.user?.role === "company" && req.user.id === companyTemp.managerAccount?.toString();
+
+		if (isAdmin) {
 			query = query.populate({
 				path: "managerAccount",
 				select: "email",
 			});
+		} else if (!isManagerOfThisCompany) {
+			// Omit if not admin and not the manager of this specific company
+			query = query.select("-managerAccount");
 		}
 
 		const company = await query;

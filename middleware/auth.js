@@ -60,8 +60,8 @@ exports.optionalProtect = async (req, res, next) => {
 	try {
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		req.user = await User.findById(decoded.id);
-		next();
 	} catch (err) {
-		next();
+		console.log(err);
 	}
+	next();
 };

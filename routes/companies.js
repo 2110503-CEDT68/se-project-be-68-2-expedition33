@@ -19,7 +19,7 @@ router.use("/:companyId/payments", paymentRouter);
 
 router
 	.route("/")
-	.get(getCompanies)
+	.get(optionalProtect, getCompanies)
 	.post(
 		protect,
 		authorize("admin"),
