@@ -63,18 +63,13 @@ const createManagerUser = async (
 	const cleanName = companyData.name
 		.replaceAll(/[^a-zA-Z0-9]/g, "")
 		.toLowerCase();
-	const generatedEmail = `${cleanName}@jobfair.company`;
+	let generatedEmail = `${cleanName}@jobfair.company`;
+	let counter = 2;
 
-	// Check if a user with this auto-generated email already exists
-	const existingUser = await User.findOne({ email: generatedEmail }).session(
-		session,
-	);
-	if (existingUser) {
-		const error = new Error(
-			`User with email ${generatedEmail} already exists.`,
-		);
-		error.name = "ValidationError";
-		throw error;
+	// Check if a user with this auto-generated email already exists, and if so, append -2, -3, etc.
+	while (await User.findOne({ email: generatedEmail }).session(session)) {
+		generatedEmail = `${cleanName}-${counter}@jobfair.company`;
+		counter++;
 	}
 
 	// Create the Company Manager User within the transaction
