@@ -175,7 +175,17 @@ exports.getCompanies = async (req, res, next) => {
 //@access	Public
 exports.getCompany = async (req, res) => {
 	try {
-		const company = await Company.findById(req.params.id).populate("bookings").populate("payments");
+		let query = Company.findById(req.params.id).populate("bookings").populate("payments");
+		
+		// If admin is requesting, populate manager account info (only email)
+		if (req.user?.role === "admin") {
+			query = query.populate({
+				path: "managerAccount",
+				select: "email",
+			});
+		}
+
+		const company = await query;
 
 		if (!company) {
 			return res.status(404).json({

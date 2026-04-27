@@ -8,7 +8,7 @@ const {
 } = require("../controllers/companies");
 const bookingRouter = require("./bookings");
 const paymentRouter = require("./payments");
-const { protect, authorize } = require("../middleware/auth");
+const { protect, authorize, optionalProtect } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
 const router = express.Router();
@@ -29,10 +29,7 @@ router
 		]),
 		createCompany,
 	);
-router
-	.route("/:id")
-	.get(getCompany)
-	.put(
+router.route("/:id").get(optionalProtect, getCompany).put(
 		protect,
 		authorize("admin", "company"),
 		upload.fields([
