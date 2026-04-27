@@ -288,6 +288,25 @@ describe("Booking Controller Integration", () => {
 
 			Booking.findById = orig;
 		});
+
+		it("should return false in isOwnerOrAdmin if booking has no user", async () => {
+			const bookingNoUser = new Booking({ bookingDate: "2022-05-11", company: company._id });
+			await bookingNoUser.save({ validateBeforeSave: false });
+
+			req.user = { id: user._id.toString(), role: "user" };
+			req.params.id = bookingNoUser._id;
+			await bookingController.getBooking(req, res);
+			expect(res.status).toHaveBeenCalledWith(403);
+		});
+
+		it("should cover isOwnerOrAdmin branches with non-populated objects", async () => {
+			// This is normally covered by updateBooking/deleteBooking which don't populate
+			req.user = { id: user._id.toString(), role: "user" };
+			req.params.id = booking._id;
+			req.body = { bookingDate: "2022-05-12" };
+			await bookingController.updateBooking(req, res);
+			expect(res.status).toHaveBeenCalledWith(200);
+		});
 	});
 
 	describe("addBooking", () => {
@@ -464,6 +483,50 @@ describe("Booking Controller Integration", () => {
 
 			expect(res.status).toHaveBeenCalledWith(500);
 			Booking.findByIdAndUpdate = orig;
+		});
+
+		it("should allow company manager to update their own company booking", async () => {
+			req.user = { id: companyManager._id.toString(), role: "company" };
+			req.params.id = booking._id;
+			req.body = { bookingDate: "2022-05-13" };
+
+			await bookingController.updateBooking(req, res);
+
+			expect(res.status).toHaveBeenCalledWith(200);
+		});
+
+		it("should cover right side of booking.company._id || booking.company", async () => {
+			const orig = Booking.findById;
+			Booking.findById = jest.fn().mockResolvedValue({
+				_id: booking._id,
+				user: { _id: user._id },
+				company: company._id.toString()
+			});
+
+			req.user = { id: companyManager._id.toString(), role: "company" };
+			req.params.id = booking._id;
+			req.body = { bookingDate: "2022-05-12" };
+			await bookingController.updateBooking(req, res);
+			expect(res.status).toHaveBeenCalledWith(200);
+
+			Booking.findById = orig;
+		});
+
+		it("should cover right side of booking.user._id || booking.user", async () => {
+			const orig = Booking.findById;
+			Booking.findById = jest.fn().mockResolvedValue({
+				_id: booking._id,
+				user: user._id.toString(),
+				company: { _id: company._id }
+			});
+
+			req.user = { id: user._id.toString(), role: "user" };
+			req.params.id = booking._id;
+			req.body = { bookingDate: "2022-05-12" };
+			await bookingController.updateBooking(req, res);
+			expect(res.status).toHaveBeenCalledWith(200);
+
+			Booking.findById = orig;
 		});
 	});
 

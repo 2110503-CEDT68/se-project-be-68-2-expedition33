@@ -1,4 +1,4 @@
-const { protect, authorize } = require("../../../middleware/auth");
+const { protect, authorize, optionalProtect } = require("../../../middleware/auth");
 const jwt = require("jsonwebtoken");
 const User = require("../../../models/User");
 
@@ -95,6 +95,37 @@ describe("Auth Middleware", () => {
 			middleware(req, res, next);
 
 			expect(next).toHaveBeenCalled();
+		});
+	});
+
+	describe("optionalProtect", () => {
+		it("should call next if no authorization header", async () => {
+			await optionalProtect(req, res, next);
+			expect(next).toHaveBeenCalled();
+			expect(req.user).toBeUndefined();
+		});
+
+		it("should set req.user if token is valid", async () => {
+			req.headers.authorization = "Bearer validtoken";
+			jwt.verify.mockReturnValue({ id: "userid" });
+			User.findById.mockResolvedValue({ id: "userid", name: "Test User" });
+
+			await optionalProtect(req, res, next);
+
+			expect(req.user).toEqual({ id: "userid", name: "Test User" });
+			expect(next).toHaveBeenCalled();
+		});
+
+		it("should call next even if token is invalid", async () => {
+			req.headers.authorization = "Bearer invalidtoken";
+			jwt.verify.mockImplementation(() => {
+				throw new Error("Invalid token");
+			});
+
+			await optionalProtect(req, res, next);
+
+			expect(next).toHaveBeenCalled();
+			expect(req.user).toBeUndefined();
 		});
 	});
 });
