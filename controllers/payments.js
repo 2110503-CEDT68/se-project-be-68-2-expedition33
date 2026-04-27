@@ -12,7 +12,7 @@ const DEFAULT_DAILY_RATE = 300;
 const isValidPaymentDate = (date) => date >= START_DATE && date <= END_DATE;
 const toDateKey = (date) => date.toISOString().split("T")[0]; // "YYYY-MM-DD"
 class AuthError extends Error {
-	constructor(message, statusCode = 403) {
+	constructor(message, statusCode) {
 		super(message);
 		this.statusCode = statusCode;
 		this.name = "AuthError";
