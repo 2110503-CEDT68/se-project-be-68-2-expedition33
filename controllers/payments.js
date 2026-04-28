@@ -253,6 +253,20 @@ exports.addPayment = async (req, res) => {
 			}
 		}
 
+		// Check for existing active or completed payments for any of the requested dates
+		const existingPayments = await Payment.find({
+			company: companyId,
+			status: { $in: ["initiated", "authorized", "captured"] },
+			dateList: { $in: normalizedDates },
+		});
+
+		if (existingPayments.length > 0) {
+			return res.status(400).json({
+				success: false,
+				msg: "One or more of the selected dates already have an active or completed payment record.",
+			});
+		}
+
 		const totalPrice = normalizedDates.length * DEFAULT_DAILY_RATE;
 		const payment = await Payment.create({
 			company: companyId,
